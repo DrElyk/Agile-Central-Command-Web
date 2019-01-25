@@ -1,28 +1,33 @@
 import React, { Component } from 'react';
 import Login from './components/Login';
+import RetroBoard from './components/RetroBoard';
 import Home from './components/Home';
 import './App.css';
 
-class App extends Component {
+export default class App extends Component {
     constructor(props) {
-        super(props);
+        super(props)
         this.state = {
             logged_in: localStorage.getItem('token') ? true : false,
-            username: ''
-        };
+            username: "",
+            email: ""
+        }
     }
 
     componentDidMount() {
         if (this.state.logged_in) {
-            fetch('http://localhost:8000/current_user/', {
+            fetch('http://localhost:8000/current-user/', {
                 headers: {
                     Authorization: `JWT ${localStorage.getItem('token')}`
                 }
             })
-                .then(res => res.json())
-                .then(json => {
-                    this.setState({ username: json.username });
+            .then(res => res.json())
+            .then(json => {
+                this.setState({
+                    username: json.username,
+                    email: json.email
                 });
+            });
         }
     }
 
@@ -40,27 +45,55 @@ class App extends Component {
             localStorage.setItem('token', json.token);
             this.setState({
                 logged_in: true,
-                displayed_form: '',
-                username: json.username
+                username: json.username,
+                email: json.email
             });
         });
     };
 
     handle_logout = () => {
         localStorage.removeItem('token');
-        this.setState({ logged_in: false, username: '' });
+        this.setState({
+            logged_in: false,
+            username: "",
+            email: ""
+        });
     };
 
     render() {
         return (
             <div>
-                {this.state.logged_in ? 
-                    <Home handle_logout={this.handle_logout} username={this.state.username} /> : 
-                    <Login handle_authentication={this.handle_authentication} />
+                {this.state.logged_in ?
+                    <Home 
+                        handle_logout={this.handle_logout} 
+                        username={this.state.username} 
+                        email={this.state.email} 
+                    /> 
+                    :
+                    <Login 
+                        handle_authentication={this.handle_authentication} 
+                    />
                 }
             </div>
         );
     }
-}
 
-export default App;
+    
+
+    // render() {
+    //     return (
+    //         <div>
+    //             {this.state.logged_in ?
+    //                 <RetroBoard 
+    //                     handle_logout={this.handle_logout} 
+    //                     sessionName="Test"
+    //                 />
+    //                 :
+    //                 <Login 
+    //                     handle_authentication={this.handle_authentication} 
+    //                 />
+    //             }
+    //         </div>
+    //     )
+    // }
+}
