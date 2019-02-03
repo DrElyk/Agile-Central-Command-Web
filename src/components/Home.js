@@ -14,13 +14,16 @@ export default class Home extends Component {
             "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
         )
 
-        this.socket.onmessage = function (e) {
-            console.log(e.data)
-            // this.setState({actionItems: [...this.state.actionItems, e.data]});
-        }
+        
         this.submitText = this.submitText.bind(this)
     }
 
+    componentDidMount() {
+        this.socket.onmessage = function (e) {
+            console.log(e.data)
+            // this.setState({ actionItems: [...this.state.actionItems, e.data] });
+        }
+    }
     submitText(e, data) {
         e.preventDefault()
         console.log(data)
@@ -29,21 +32,6 @@ export default class Home extends Component {
 
 
     render() {
-        // const socket = new WebSocket(
-        //     "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + this.props.email
-        // )
-        
-        // function submitText(e, data) {
-        //     e.preventDefault()
-        //     console.log(data)
-        //     socket.send(JSON.stringify(data))
-        // }
-
-        // socket.onmessage = function (e) {
-        //     console.log(e.data)
-        //     // this.setState({actionItems: [...this.state.actionItems, e.data]});
-        // }
-
         return (
             <div>
                 <h1>Welcome, {this.props.username} </h1>

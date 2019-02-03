@@ -67,7 +67,7 @@ export default class App extends Component {
                     <Home 
                         handle_logout={this.handle_logout} 
                         username={this.state.username} 
-                        email={this.state.email} 
+                        email={this.state.email}
                     /> 
                     :
                     <Login 
@@ -77,23 +77,4 @@ export default class App extends Component {
             </div>
         );
     }
-
-    
-
-    // render() {
-    //     return (
-    //         <div>
-    //             {this.state.logged_in ?
-    //                 <RetroBoard 
-    //                     handle_logout={this.handle_logout} 
-    //                     sessionName="Test"
-    //                 />
-    //                 :
-    //                 <Login 
-    //                     handle_authentication={this.handle_authentication} 
-    //                 />
-    //             }
-    //         </div>
-    //     )
-    // }
 }
