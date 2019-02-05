@@ -14,7 +14,8 @@ export default class Home extends Component {
             "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
         )
 
-        
+        console.log("this is session name: " + this.state.sessionName)
+        console.log("this is prop email: " + props.email)
         this.submitText = this.submitText.bind(this)
     }
 
@@ -34,7 +35,7 @@ export default class Home extends Component {
     render() {
         return (
             <div>
-                <h1>Welcome, {this.props.username} </h1>
+                <h1>Hey Dude, this is Home Component. Welcome, {this.props.username} </h1>
                 <button onClick={this.props.handle_logout}>Logout</button>
                 <h2> Team name - {this.state.sessionName}</h2>
                 <RetroActionItems messages={this.state.actionItems} />

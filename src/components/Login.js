@@ -20,7 +20,7 @@ class Login extends React.Component {
     render() {
         return (
             <form onSubmit={e => this.props.handle_authentication(e, this.state)}>
-                <h4>Sign Up</h4>
+                <h1>Login Component</h1>
                 <label htmlFor="email">Email</label>
                 <input
                     type="text"

@@ -23,10 +23,16 @@ export default class App extends Component {
             })
             .then(res => res.json())
             .then(json => {
-                this.setState({
-                    username: json.username,
-                    email: json.email
-                });
+                if (json.detail === "Signature has expired.") {
+                    this.setState({
+                        logged_in: false
+                    })
+                } else {
+                    this.setState({
+                        username: json.username,
+                        email: json.email
+                    });
+                }
             });
         }
     }
@@ -63,12 +69,12 @@ export default class App extends Component {
     render() {
         return (
             <div>
-                {this.state.logged_in ?
+                {this.state.logged_in ? this.state.email && this.state.username ? 
                     <Home 
                         handle_logout={this.handle_logout} 
                         username={this.state.username} 
                         email={this.state.email}
-                    /> 
+                    /> : <div>Loading...</div>
                     :
                     <Login 
                         handle_authentication={this.handle_authentication} 
