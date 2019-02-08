@@ -67,17 +67,32 @@ export default class App extends Component {
     };
 
     render() {
+        // return (
+        //     <div>
+        //         {this.state.logged_in ? this.state.email && this.state.username ? 
+        //             <Home 
+        //                 handle_logout={this.handle_logout} 
+        //                 username={this.state.username} 
+        //                 email={this.state.email}
+        //             /> : <div>Loading...</div>
+        //             :
+        //             <Login 
+        //                 handle_authentication={this.handle_authentication} 
+        //             />
+        //         }
+        //     </div>
+        // );
         return (
             <div>
-                {this.state.logged_in ? this.state.email && this.state.username ? 
-                    <Home 
-                        handle_logout={this.handle_logout} 
-                        username={this.state.username} 
+                {this.state.logged_in ? this.state.email && this.state.username ?
+                    <RetroBoard
+                        handle_logout={this.handle_logout}
+                        username={this.state.username}
                         email={this.state.email}
                     /> : <div>Loading...</div>
                     :
-                    <Login 
-                        handle_authentication={this.handle_authentication} 
+                    <Login
+                        handle_authentication={this.handle_authentication}
                     />
                 }
             </div>
