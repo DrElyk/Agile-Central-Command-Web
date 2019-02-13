@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import './RetroBoard.css';
 import RetroBoardForm from './RetroBoardForm';
 
+// Note: Only session owner can see "End Sesion" button
 
 export default class RetroBoard extends Component {
     constructor(props) {
         super(props)
         this.state = {
             sessionName: "Test",
+            isOwner: false,
             whatWentWellItems: [],
             whatDidNotItems: [],
             actionItems: []
@@ -30,7 +32,6 @@ export default class RetroBoard extends Component {
                     logged_in: false
                 })
             } else {
-                console.log(json)
                 json.forEach(retroBoardItem => {
                     switch (retroBoardItem.item_type) {
                         case "WWW":
@@ -55,15 +56,42 @@ export default class RetroBoard extends Component {
             }
         })
 
+        fetch('http://localhost:8000/session-owner/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({'session_title': this.state.sessionName})
+        })
+        .then(res => res.json())
+        .then(json => {
+            if (json.is_owner === true) {
+                this.setState({
+                    isOwner: true
+                })
+            } else {
+                console.log("You're a member, not an owner")
+            }
+        })
 
         this.socket.onmessage = (e) => {
-            const retroBoardItem = JSON.parse(e.data)
-            this.addRetroBoardItems(retroBoardItem)
+            const dataFromSocket = JSON.parse(e.data)
+            if (dataFromSocket.hasOwnProperty("end_session_message")) {
+                // We should replace alert with something else
+                alert(dataFromSocket.session_owner + " has ended this session!!! Please go back to Dashboard")
+                this.socket.close()
+                console.log("Kate, redirect user to dashboard here")
+            } else if (dataFromSocket.hasOwnProperty("exit_session_message")) {
+                alert(dataFromSocket.member + " left the session")
+                console.log("Kate, redirect user to dashboard here")
+            } else {
+                const retroBoardItem = dataFromSocket
+                this.addRetroBoardItems(retroBoardItem)
+            }
         }
 
-        this.socket.onclose = () => {
-            console.log('disconnected')
-        }
+        // this.socket.onclose = () => {}
     }
 
     submitText = (e, data) => {
@@ -93,6 +121,20 @@ export default class RetroBoard extends Component {
         }
     }
 
+    endSession = () => {
+        this.socket.send(
+            JSON.stringify({'end_session': 'Owner wants to end this session!'})
+        )
+    }
+
+    exitSession = () => {
+        this.socket.send(
+            JSON.stringify({
+                'session_member': this.props.username,
+                'exit_session': 'User wants to exit this session!'
+            })
+        )
+    }
 
     render() {
         return (
@@ -107,7 +149,7 @@ export default class RetroBoard extends Component {
                         <RetroBoardItemList convertKeyToString= {this.convertKeyToString} itemList={this.state.whatWentWellItems}></RetroBoardItemList>
                     </div>
                     <div className="column">
-                        <h3>What Didn't</h3>
+                        <h3>What Did Not</h3>
                         <RetroBoardItemList itemList={this.state.whatDidNotItems}></RetroBoardItemList>
                     </div>
                     <div className="column">
@@ -115,6 +157,10 @@ export default class RetroBoard extends Component {
                         <RetroBoardItemList itemList={this.state.actionItems}></RetroBoardItemList>
                     </div>
                 </div>
+                {this.state.isOwner ?
+                    <button onClick={this.endSession}>End Session</button> : <div></div>
+                }
+                <button onClick={this.exitSession}>Exit Session</button>
             </div>
         );
     }
@@ -123,9 +169,8 @@ export default class RetroBoard extends Component {
 
 function RetroBoardItemList(props) {
     const itemList = props.itemList
-    console.log(itemList)
-    const items = itemList.map((item) => 
-        <li key={item.item_id}>
+    const items = itemList.map((item, i) => 
+        <li key={i}>
             {item.item_text}
         </li>
     )
