@@ -146,7 +146,7 @@ export default class RetroBoard extends Component {
                 <div className="row">
                     <div className="column">
                         <h3>What Went Well</h3>
-                        <RetroBoardItemList convertKeyToString= {this.convertKeyToString} itemList={this.state.whatWentWellItems}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatWentWellItems}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>What Did Not</h3>
