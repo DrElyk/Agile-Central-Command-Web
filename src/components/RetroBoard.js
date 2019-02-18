@@ -12,7 +12,8 @@ export default class RetroBoard extends Component {
             isOwner: false,
             whatWentWellItems: [],
             whatDidNotItems: [],
-            actionItems: []
+            actionItems: [],
+            sessionId: 1
         }
         this.socket = new WebSocket(
             "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
@@ -125,6 +126,19 @@ export default class RetroBoard extends Component {
         this.socket.send(
             JSON.stringify({'end_session': 'Owner wants to end this session!'})
         )
+        fetch('http://localhost:8000/end_retro/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                'session': this.state.sessionId,
+                'access_token': localStorage.getItem('access_token'),
+                'secret_access_token': localStorage.getItem('secret_access_token')
+            })
+        })
+
     }
 
     exitSession = () => {
