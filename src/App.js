@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
 import Login from './components/Login';
 import RetroBoard from './components/RetroBoard';
+import OAuth from './components/OAuth';
 import './App.css';
+import {
+  Route
+} from "react-router-dom";
 
 export default class App extends Component {
     constructor(props) {
@@ -9,7 +13,9 @@ export default class App extends Component {
         this.state = {
             logged_in: localStorage.getItem('token') ? true : false,
             username: "",
-            email: ""
+            email: "",
+            auth: false,
+            oauth: false
         }
     }
 
@@ -29,7 +35,8 @@ export default class App extends Component {
                 } else {
                     this.setState({
                         username: json.username,
-                        email: json.email
+                        email: json.email,
+                        auth: true
                     });
                 }
             });
@@ -48,10 +55,12 @@ export default class App extends Component {
         .then(res => res.json())
         .then(json => {
             localStorage.setItem('token', json.token);
+            localStorage.setItem('oauth_token', json.oauth_token);
+            localStorage.setItem('oauth_token_secret', json.oauth_token_secret);
             this.setState({
-                logged_in: true,
                 username: json.username,
-                email: json.email
+                email: json.email,
+                auth: true
             });
         });
     };
@@ -62,6 +71,38 @@ export default class App extends Component {
             logged_in: false,
             username: "",
             email: ""
+        });
+    };
+
+    oauth_user_props = () => {
+      return (
+        <div>
+            {this.state.auth ?
+                <OAuth oauth_user={this.oauth_user.bind(this)} /> :
+                null
+            }
+        </div>
+      );
+    };
+
+    oauth_user = () => {
+        fetch('http://localhost:8000/oauth_user/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({oauth_token: localStorage.getItem('oauth_token'),
+                                  oauth_token_secret: localStorage.getItem('oauth_token_secret')})
+        })
+        .then(res => res.json())
+        .then(json => {
+            localStorage.setItem('access_token', json.access_token);
+            localStorage.setItem('secret_access_token', json.secret_access_token);
+            this.setState({
+                logged_in: true,
+                auth: false,
+                oauth: true
+            })
         });
     };
 
@@ -79,6 +120,7 @@ export default class App extends Component {
                         handle_authentication={this.handle_authentication}
                     />
                 }
+                <Route path="/oauth_user" render={this.oauth_user_props} />
             </div>
         );
     }
