@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './RetroBoard.css';
 import RetroBoardForm from './RetroBoardForm';
+import update from 'react-addons-update';
 
 // Note: Only session owner can see "End Sesion" button
 
@@ -13,7 +14,7 @@ export default class RetroBoard extends Component {
             whatWentWellItems: [],
             whatDidNotItems: [],
             actionItems: [],
-            sessionId: 1
+            sessionId: 1,
         }
         this.socket = new WebSocket(
             "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
@@ -150,6 +151,53 @@ export default class RetroBoard extends Component {
         )
     }
 
+    editItem = (e, item, i) => {
+        var entered_text = 'Text Changing';
+        var item_state = {
+            itemText: item.item_text,
+            itemType: item.item_type,
+            newItemText: entered_text,
+            item_id: item.id,
+        };
+        if(item.item_type === 'WWW') {
+            this.setState({
+                whatWentWellItems: update(this.state.whatWentWellItems, {[i]: {item_text: {$set: entered_text}}}),
+            })
+        } else if(item.item_type === 'WDN') {
+            this.setState({
+                whatDidNotItems: update(this.state.whatDidNotItems, {[i]: {item_text: {$set: entered_text}}}),
+            })
+        } else if(item.item_type === 'AI') {
+            this.setState({
+                actionItems: update(this.state.actionItems, {[i]: {item_text: {$set: entered_text}}}),
+            })
+        }
+        this.submitText(e, item_state);
+    }
+
+    deleteItem = (e, item, i) => {
+        var item_state = {
+            itemText: item.item_text,
+            itemType: item.item_type,
+            item_id: item.id,
+            delete: true
+        };
+        if(item.item_type === 'WWW') {
+            this.setState(prevState => ({
+                whatWentWellItems: prevState.whatWentWellItems.filter(el => el != item),
+            }));
+        } else if (item.item_type === 'WDN') {
+            this.setState(prevState => ({
+                whatDidNotItems: prevState.whatDidNotItems.filter(el => el != item),
+            }));
+        } else if (item.item_type === 'AI') {
+            this.setState(prevState => ({
+                actionItems: prevState.actionItems.filter(el => el != item),
+            }));
+        }
+        this.submitText(e, item_state);
+    }
+
     render() {
         return (
             <div>
@@ -160,15 +208,15 @@ export default class RetroBoard extends Component {
                 <div className="row">
                     <div className="column">
                         <h3>What Went Well</h3>
-                        <RetroBoardItemList itemList={this.state.whatWentWellItems}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatWentWellItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>What Did Not</h3>
-                        <RetroBoardItemList itemList={this.state.whatDidNotItems}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatDidNotItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>Action Items</h3>
-                        <RetroBoardItemList itemList={this.state.actionItems}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.actionItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                 </div>
                 {this.state.isOwner ?
@@ -178,15 +226,21 @@ export default class RetroBoard extends Component {
             </div>
         );
     }
+
 }
 
-
 function RetroBoardItemList(props) {
-    const itemList = props.itemList
+    const itemList = props.itemList;
+    const editItem = props.editItem;
+    const deleteItem = props.deleteItem;
     const items = itemList.map((item, i) => 
-        <li key={i}>
-            {item.item_text}
-        </li>
+        <div>
+            <li key={i}>
+                {item.item_text}
+                <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
+                <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+            </li>
+        </div>
     )
     return (
         <ul>{items}</ul>

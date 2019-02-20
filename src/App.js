@@ -100,6 +100,7 @@ export default class App extends Component {
             localStorage.setItem('secret_access_token', json.secret_access_token);
             this.setState({
                 logged_in: true,
+                username: json.username,
                 auth: false,
                 oauth: true
             })
