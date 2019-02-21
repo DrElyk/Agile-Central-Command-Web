@@ -157,7 +157,7 @@ export default class RetroBoard extends Component {
             itemText: item.item_text,
             itemType: item.item_type,
             newItemText: entered_text,
-            item_id: item.id,
+            item_id: item.id ? item.id : item.item_id,
         };
         if(item.item_type === 'WWW') {
             this.setState({
@@ -175,11 +175,11 @@ export default class RetroBoard extends Component {
         this.submitText(e, item_state);
     }
 
-    deleteItem = (e, item, i) => {
+    deleteItem = (e, item) => {
         var item_state = {
             itemText: item.item_text,
             itemType: item.item_type,
-            item_id: item.id,
+            item_id: item.id ? item.id : item.item_id,
             delete: true
         };
         if(item.item_type === 'WWW') {
