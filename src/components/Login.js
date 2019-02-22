@@ -1,42 +1,41 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
 
 export default class Login extends React.Component {
-    state = {
-        email: '',
-        password: ''
-    };
+  state = {
+    email: "",
+    password: ""
+  };
 
-    handle_change = e => {
-        const name = e.target.name;
-        const value = e.target.value;
-        this.setState(prevstate => {
-            const newState = { ...prevstate };
-            newState[name] = value;
-            return newState;
-        });
-    };
+  handle_change = e => {
+    const name = e.target.name;
+    const value = e.target.value;
+    this.setState(prevstate => {
+      const newState = { ...prevstate };
+      newState[name] = value;
+      return newState;
+    });
+  };
 
-    render() {
-        return (
-            <form onSubmit={e => this.props.handle_authentication(e, this.state)}>
-                <h1>Login Component</h1>
-                <label htmlFor="email">Email</label>
-                <input
-                    type="text"
-                    name="email"
-                    value={this.state.email}
-                    onChange={this.handle_change}
-                />
-                <label htmlFor="password">Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    value={this.state.password}
-                    onChange={this.handle_change}
-                />
-                <input type="submit" />
-            </form>
-        );
-    }
+  render() {
+    return (
+      <form onSubmit={e => this.props.handle_authentication(e, this.state)}>
+        <h1>Login Component</h1>
+        <label htmlFor="email">Email</label>
+        <input
+          type="text"
+          name="email"
+          value={this.state.email}
+          onChange={this.handle_change}
+        />
+        <label htmlFor="password">Password</label>
+        <input
+          type="password"
+          name="password"
+          value={this.state.password}
+          onChange={this.handle_change}
+        />
+        <input type="submit" />
+      </form>
+    );
+  }
 }
