@@ -135,7 +135,7 @@ export default class App extends Component {
         ) : (
           <div>
             <h1>Just log in, please!</h1>
-            <button onClick={this.handle_login}></button>
+            <button onClick={this.handle_login}>Login</button>
           </div>
         )}
         <Route path="/oauth_user" render={this.oauth_user_props} />
