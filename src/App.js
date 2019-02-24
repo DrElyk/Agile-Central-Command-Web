@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Login from "./components/Login";
 import RetroBoard from "./components/RetroBoard";
 import OAuth from "./components/OAuth";
 import "./App.css";
@@ -44,35 +43,30 @@ export default class App extends Component {
     }
   }
 
-  handle_authentication = (e, data) => {
+  handle_login = (e, data) => {
     e.preventDefault();
-    fetch("http://localhost:8000/users/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
+    fetch("http://localhost:8000/login/")
+    .then(res => res.json())
+    .then(json => {
+      localStorage.setItem("oauth_token", json.oauth_token);
+      localStorage.setItem("oauth_token_secret", json.oauth_token_secret);
+      this.setState({
+        oauth_url: json.oauth_url,
+        auth: true
+      })
     })
-      .then(res => res.json())
-      .then(json => {
-        localStorage.setItem("token", json.token);
-        localStorage.setItem("oauth_token", json.oauth_token);
-        localStorage.setItem("oauth_token_secret", json.oauth_token_secret);
-        console.log(json.oauth_url);
-
-        this.setState({
-          username: json.username,
-          email: json.email,
-          oauth_url: json.oauth_url,
-          auth: true
-        });
-      });
-  };
+  }
 
   handle_logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("oauth_token");
+    localStorage.removeItem("oauth_token_secret");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("secret_access_token");
     this.setState({
       logged_in: false,
+      auth: false,
+      oauth: false,
       username: "",
       email: ""
     });
@@ -101,11 +95,13 @@ export default class App extends Component {
     })
       .then(res => res.json())
       .then(json => {
+        localStorage.setItem("token", json.token);
         localStorage.setItem("access_token", json.access_token);
         localStorage.setItem("secret_access_token", json.secret_access_token);
         this.setState({
           logged_in: true,
           username: json.username,
+          email: json.email,
           auth: false,
           oauth: true
         });
@@ -136,7 +132,10 @@ export default class App extends Component {
             <div>Loading...</div>
           )
         ) : (
-          <Login handle_authentication={this.handle_authentication} />
+          <div>
+            <h1>Just log in, please!</h1>
+            <button onClick={this.handle_login}>Login</button>
+          </div>
         )}
         <Route path="/oauth_user" render={this.oauth_user_props} />
         {this.state.oauth_url !== "" ? (
