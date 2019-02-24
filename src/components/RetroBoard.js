@@ -34,7 +34,6 @@ export default class RetroBoard extends Component {
                     logged_in: false
                 })
             } else {
-                console.log(json)
                 json.forEach(retroBoardItem => {
                     switch (retroBoardItem.item_type) {
                         case "WWW":
