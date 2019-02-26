@@ -8,13 +8,14 @@ import update from 'react-addons-update';
 export default class RetroBoard extends Component {
     constructor(props) {
         super(props)
+        this.username = props.username;
         this.state = {
             sessionName: "Test",
             isOwner: false,
             whatWentWellItems: [],
             whatDidNotItems: [],
             actionItems: [],
-            sessionId: 1,
+            sessionId: 1
         }
         this.socket = new WebSocket(
             "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
@@ -208,15 +209,15 @@ export default class RetroBoard extends Component {
                 <div className="row">
                     <div className="column">
                         <h3>What Went Well</h3>
-                        <RetroBoardItemList itemList={this.state.whatWentWellItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatWentWellItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>What Did Not</h3>
-                        <RetroBoardItemList itemList={this.state.whatDidNotItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatDidNotItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>Action Items</h3>
-                        <RetroBoardItemList itemList={this.state.actionItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.actionItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                 </div>
                 {this.state.isOwner ?
@@ -233,12 +234,18 @@ function RetroBoardItemList(props) {
     const itemList = props.itemList;
     const editItem = props.editItem;
     const deleteItem = props.deleteItem;
+    const username = props.username;
     const items = itemList.map((item, i) => 
         <div>
             <li key={i}>
-                {item.item_text}
-                <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
-                <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                {item.owner_username == username ?
+                    <div>
+                        {item.item_text}
+                        <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
+                        <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                    </div> :
+                    <div>{item.item_text}</div>
+                }
             </li>
         </div>
     )
