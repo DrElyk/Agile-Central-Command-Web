@@ -9,15 +9,15 @@ export default class RetroBoard extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            sessionName: "Test",
+            // sessionName: "Test",
             isOwner: false,
             whatWentWellItems: [],
             whatDidNotItems: [],
             actionItems: [],
-            sessionId: 1,
+            // sessionId: 1,
         }
         this.socket = new WebSocket(
-            "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
+            "ws://localhost:8000/retro/" + props.session.title + "/?" + props.email
         )
     }
 
@@ -64,7 +64,7 @@ export default class RetroBoard extends Component {
                 'Content-Type': 'application/json',
                 Authorization: `JWT ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify({'session_title': this.state.sessionName})
+            body: JSON.stringify({'session_title': this.props.session.title})
         })
         .then(res => res.json())
         .then(json => {
@@ -134,7 +134,7 @@ export default class RetroBoard extends Component {
                 Authorization: `JWT ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({
-                'session': this.state.sessionId,
+                'session': this.props.session.id,
                 'access_token': localStorage.getItem('access_token'),
                 'secret_access_token': localStorage.getItem('secret_access_token')
             })
@@ -203,7 +203,7 @@ export default class RetroBoard extends Component {
             <div>
                 <h1>Welcome, {this.props.username}</h1>
                 <button onClick={this.props.handle_logout}>Logout</button>
-                <h2>Team Name - { this.state.sessionName }</h2>
+                <h2>Team Name - { this.props.session.title }</h2>
                 <RetroBoardForm submitText={this.submitText} />
                 <div className="row">
                     <div className="column">

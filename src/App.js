@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import RetroBoard from "./components/RetroBoard";
 import OAuth from "./components/OAuth";
+import Home from "./components/Home";
 import "./App.css";
 import { Route } from "react-router-dom";
 
@@ -26,20 +27,20 @@ export default class App extends Component {
           Authorization: `JWT ${localStorage.getItem("token")}`
         }
       })
-        .then(res => res.json())
-        .then(json => {
-          if (json.detail === "Signature has expired.") {
-            this.setState({
-              logged_in: false
-            });
-          } else {
-            this.setState({
-              username: json.username,
-              email: json.email,
-              auth: true
-            });
-          }
-        });
+      .then(res => res.json())
+      .then(json => {
+        if (json.detail === "Signature has expired.") {
+          this.setState({
+            logged_in: false
+          });
+        } else {
+          this.setState({
+            username: json.username,
+            email: json.email,
+            auth: true
+          });
+        }
+      });
     }
   }
 
@@ -108,6 +109,49 @@ export default class App extends Component {
       });
   };
 
+  // render() {
+  //   // when the oauth is completed, continue to oauth_user function
+  //   const onCode = (code, params) => {
+  //     this.oauth_user();
+  //   };
+
+  //   const onClose = () => {
+  //     console.log("closed!");
+  //     console.log(this.state.oauth_url);
+  //   };
+
+  //   return (
+  //     <div>
+  //       {this.state.logged_in ? (
+  //         this.state.email && this.state.username ? (
+  //           <RetroBoard
+  //             handle_logout={this.handle_logout}
+  //             username={this.state.username}
+  //             email={this.state.email}
+  //           />
+  //         ) : (
+  //           <div>Loading...</div>
+  //         )
+  //       ) : (
+  //         <div>
+  //           <h1>Just log in, please!</h1>
+  //           <button onClick={this.handle_login}>Login</button>
+  //         </div>
+  //       )}
+  //       <Route path="/oauth_user" render={this.oauth_user_props} />
+  //       {this.state.oauth_url !== "" ? (
+  //         <OauthPopup
+  //           url={this.state.oauth_url}
+  //           onCode={onCode}
+  //           onClose={onClose}
+  //         />
+  //       ) : (
+  //         <div />
+  //       )}
+  //     </div>
+  //   );
+  // }
+
   render() {
     // when the oauth is completed, continue to oauth_user function
     const onCode = (code, params) => {
@@ -123,7 +167,7 @@ export default class App extends Component {
       <div>
         {this.state.logged_in ? (
           this.state.email && this.state.username ? (
-            <RetroBoard
+            <Home 
               handle_logout={this.handle_logout}
               username={this.state.username}
               email={this.state.email}
