@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import RetroBoard from "./components/RetroBoard";
 import OAuth from "./components/OAuth";
 import Home from "./components/Home";
 import "./App.css";

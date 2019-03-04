@@ -55,6 +55,7 @@ export default class Home extends Component {
     }
 
     render() {
+        const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "Coffee Break", "Pass"]
         return (
             <div>
                 {this.state.isRetro ? (
@@ -69,6 +70,7 @@ export default class Home extends Component {
                             username={this.props.username}
                             email={this.props.email}
                             session={this.state.selectedSession}
+                            cardDeck={cardDeck}
                         />
                     ) : (
                         <div>
