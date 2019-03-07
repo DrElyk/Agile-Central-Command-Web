@@ -55,7 +55,7 @@ export default class Home extends Component {
     }
 
     render() {
-        const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "Coffee Break", "Pass"]
+        const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
         return (
             <div>
                 {this.state.isRetro ? (

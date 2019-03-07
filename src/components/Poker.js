@@ -1,30 +1,15 @@
 import React, { Component } from "react";
 import './RetroBoard.css';
 
+
 export default class Poker extends Component {
     constructor(props) {
         super(props)
         this.state = {
             stories: [],
-            cardDeck: [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "Coffee Break", "Pass"],
-            currentStory: {
-                title: '',
-                description: '',
-                points: null
-            },
             selectedStoryIndex: 0,
-            playedCards: [],
-            totalPoints: null,
-            whoHasPlayed: [],
-            currentCard: {
-                card_owner: '',
-                card: null,
-                story: null
-            },
             members: [],
-            isFlipped: false,
             isOwner: false,
-            isPlayed: false,
         }
 
         this.socket = new WebSocket(
@@ -42,18 +27,23 @@ export default class Poker extends Component {
         .then(res => res.json())
         .then(json => {
             json.forEach(story => {
+                let modified_story = {
+                    id: story.id,
+                    title: story.title,
+                    description: story.description,
+                    points: story.story_points,
+                    playedCards: [],
+                    whoHasPlayed: [],
+                    // setState card with one from server
+                    card: '',
+                    //
+                    isCardFlipped: false,
+                    isUserPlayed: false
+                }
                 this.setState({
-                    stories: [...this.state.stories, story]
+                    stories: [...this.state.stories, modified_story]
                 })
             })
-            this.setState(prevState => ({
-                currentStory: {
-                    ...prevState.currentStory,
-                    title: json[0].title,
-                    description: json[0].description,
-                    points: json[0].story_points
-                }
-            }))
         })
 
         url = new URL("http://localhost:8000/session-members/" + this.props.session.id)
@@ -62,14 +52,14 @@ export default class Poker extends Component {
                 Authorization: `JWT ${localStorage.getItem('token')}`
             }
         })
-        .then(res => res.json())
-        .then(json => {
-            json.forEach(member => {
-                this.setState({
-                    members: [...this.state.members, member]
+            .then(res => res.json())
+            .then(json => {
+                json.forEach(member => {
+                    this.setState({
+                        members: [...this.state.members, member]
+                    })
                 })
             })
-        })
 
         fetch('http://localhost:8000/session-owner/', {
             method: "POST",
@@ -79,16 +69,16 @@ export default class Poker extends Component {
             },
             body: JSON.stringify({ 'session_title': this.props.session.title })
         })
-        .then(res => res.json())
-        .then(json => {
-            if (json.is_owner === true) {
-                this.setState({
-                    isOwner: true
-                })
-            } else {
-                console.log("You're a member, not an owner")
-            }
-        })
+            .then(res => res.json())
+            .then(json => {
+                if (json.is_owner === true) {
+                    this.setState({
+                        isOwner: true
+                    })
+                } else {
+                    console.log("You're a member, not an owner")
+                }
+            })
 
         this.socket.onmessage = (e) => {
             const dataFromSocket = JSON.parse(e.data)
@@ -97,21 +87,50 @@ export default class Poker extends Component {
             } else if (dataFromSocket.hasOwnProperty("toggle_prev_story")) {
                 this.togglePrevStory()
             } else if (dataFromSocket.hasOwnProperty("play_card")) {
-                this.setState({
-                    whoHasPlayed: [...this.state.whoHasPlayed, dataFromSocket]
-                })
+                let player = dataFromSocket.player
+                let currentStory = this.state.stories[this.state.selectedStoryIndex]
+                if (!currentStory.whoHasPlayed.includes(player)) {
+                    this.setState(state => ({
+                        stories: state.stories.map((story, i) => {
+                            if (i === state.selectedStoryIndex) {
+                                return { ...story, isUserPlayed: true, whoHasPlayed: [...story.whoHasPlayed, player] }
+                            }
+                            return story
+                        })
+                    }))
+                }
             } else if (dataFromSocket.hasOwnProperty("flip_card")) {
-                this.setState({isFlipped: true})
-                this.socket.send(JSON.stringify({
-                    "card_owner": this.state.currentCard.card_owner,
-                    "card": this.state.currentCard.card,
-                    "story": this.state.currentStory 
-                }))
-            } else {
-                // show all cards on the table
-                const card = dataFromSocket
-                this.setState({
-                    playedCards: [...this.state.playedCards, card]
+                let currentStory = this.state.stories[this.state.selectedStoryIndex]
+                url = new URL("http://localhost:8000/cards/" + this.props.session.id + "/" + currentStory.id)
+                fetch(url, {
+                    headers: {
+                        Authorization: `JWT ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(res => res.json())
+                .then(json => {
+                    json.forEach(card => {
+                        this.setState(state => ({
+                            stories: state.stories.map((story, i) => {
+                                if (i === state.selectedStoryIndex) {
+                                    return { ...story, playedCards: [...story.playedCards, card] }
+                                }
+                                return story
+                            })
+                        }))
+                    })
+
+                    let totalPoints = this.calculateStoryPoints()
+                    
+                    this.setState(state => ({
+                        stories: state.stories.map((story, i) => {
+                            if (i === state.selectedStoryIndex) {
+                                return { ...story, isCardFlipped: true, points: totalPoints}
+                            }
+                            return story
+                        })
+                    }))
+                    
                 })
             }
         }
@@ -122,23 +141,7 @@ export default class Poker extends Component {
             return
 
         this.setState(prevState => ({
-            currentStory: {
-                ...prevState.currentStory,
-                title: this.state.stories[prevState.selectedStoryIndex + 1].title,
-                description: this.state.stories[prevState.selectedStoryIndex + 1].description,
-                points: this.state.stories[prevState.selectedStoryIndex + 1].story_points,
-            },
             selectedStoryIndex: prevState.selectedStoryIndex + 1,
-            playedCards: [],
-            totalPoints: null,
-            whoHasPlayed: [],
-            currentCard: {
-                card_owner: '',
-                card: null,
-                story: null
-            },
-            isFlipped: false,
-            isPlayed: false,
         }))
     }
 
@@ -147,23 +150,7 @@ export default class Poker extends Component {
             return
 
         this.setState(prevState => ({
-            currentStory: {
-                ...prevState.currentStory,
-                title: this.state.stories[prevState.selectedStoryIndex - 1].title,
-                description: this.state.stories[prevState.selectedStoryIndex - 1].description,
-                points: this.state.stories[prevState.selectedStoryIndex - 1].story_points
-            },
             selectedStoryIndex: prevState.selectedStoryIndex - 1,
-            playedCards: [],
-            totalPoints: null,
-            whoHasPlayed: [],
-            currentCard: {
-                card_owner: '',
-                card: null,
-                story: null
-            },
-            isFlipped: false,
-            isPlayed: false,
         }))
     }
 
@@ -184,66 +171,107 @@ export default class Poker extends Component {
     }
 
     playCards = (e, data) => {
-        this.setState(prevState => ({
-            currentCard: {
-                ...prevState.currentCard,
-                card_owner: this.props.username,
-                card: data,
-                story: this.state.currentStory
-            }
-        }))
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
 
-        if (this.state.isPlayed === false) {
-            this.socket.send(
-                JSON.stringify({
-                    'play_card': 'Member plays a card',
-                    'story': this.state.currentStory
-                })
-            )
-            this.setState({isPlayed: true})
+        switch (data) {
+            case "?":
+                data = -1
+                break;
+            case "Pass":
+                data = -2
+                break;
+            case "Coffee Break":
+                data = -3
+                break;
+            default:
+                break;
         }
+
+        this.socket.send(
+            JSON.stringify({
+                'play_card': 'User plays a card',
+                'card': data, 
+                'player': this.props.email,
+                'story': currentStory.id
+            })
+        )
+
+        this.setState(state => ({
+            stories: state.stories.map((story, i) => {
+                if (i === state.selectedStoryIndex) {
+                    return { ...story, card: data}
+                }
+                return story
+            })
+        }))
     }
 
     flipCards = () => {
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
         this.socket.send(JSON.stringify({
             'flip_card': 'Owner wants to flip cards',
+            'story': currentStory.id
         }))
     }
 
-    totalPoints = () => {
+    calculateStoryPoints = () => {
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        let cardDeck = this.props.cardDeck
+        let points = 0
+        let validPoints = 0
+        currentStory.playedCards.forEach(card => {
+            if (card.card >= 0) {
+                points += card.card
+                validPoints++
+            }
+        })
+        points = (points / validPoints)
+        for (let i = 0; i < cardDeck.length; i++) {
+            const card = cardDeck[i];
+            if (typeof card === 'number') {
+                if (points <= card) {
+                    points = card
+                    break;
+                }
+            }
+        }
+        return points
+    }
+
+    editPoints = (e, data) => {
+        e.preventDefault()
 
     }
 
-
     render() {
+        if (this.state.stories.length === 0) {
+            return <div>Loading stories</div>
+        }
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
         return (
             <div>
                 <h1>This is planning poker</h1>
                 <div className="row">
                     <div className="column">
-                        <CurrentStory currentStory={this.state.currentStory} />
-                        <h4>Total points: </h4>
+                        <h2>Current Story: {currentStory.title}</h2>
+                        <h3>Story Description: {currentStory.description}</h3>
+                        <h4>Total points: {currentStory.points} </h4>
                         {this.state.isOwner ?
                             <div>
-                               <button>Edit Points</button>
+                                <button onClick={this.editPoints}>Edit Points</button>
                             </div> : null
                         }
                         <h3>Time Remaining: </h3>
                     </div>
                     <div className="column">
-                        <PokerTable 
-                            isFlipped={this.state.isFlipped} 
-                            playedCards={this.state.playedCards} 
-                            whoHasPlayed={this.state.whoHasPlayed} 
-                            totalPoints={this.state.totalPoints} 
-                            deck={this.state.deck}
-                            story={this.state.currentStory}
+                        <PokerTable
+                            deck={this.props.cardDeck}
+                            currentStory={currentStory}
                         />
-                        <CardDeck 
-                            deck={this.state.cardDeck} 
-                            currentStory={this.state.currentStory}
+                        <CardDeck
+                            deck={this.props.cardDeck}
+                            currentStory={currentStory}
                             playCards={this.playCards}
-                            isFlipped={this.state.isFlipped}
                         />
                     </div>
                     <div className="column">
@@ -256,15 +284,15 @@ export default class Poker extends Component {
                                 <div>
                                     <button onClick={this.prevStory}>Previous Story</button>
                                     <button onClick={this.nextStory}>Next Story</button>
-                                    <button >Reset Cards</button>
-                                    {this.state.whoHasPlayed.length !== 0 && this.state.isFlipped === false ?
+                                    <button>Reset Cards</button>
+                                    {currentStory.whoHasPlayed.length !== 0 && currentStory.isCardFlipped === false ?
                                         <button onClick={this.flipCards}>Flip Cards</button>
                                         :
                                         <button disabled>Flip Cards</button>
                                     }
                                     <button>Add Stories</button>
                                     <button>End Game</button>
-                                </div> : <div></div>
+                                </div> : null
                             }
                             <h3>List of Stories: </h3>
                             <Stories stories={this.state.stories} />
@@ -280,51 +308,56 @@ function Stories(props) {
     const stories = props.stories.map((item, i) =>
         <div>
             <li>
-                {item.title} with {item.points == null ? item.points="-" : item.points} points
+                {item.title} with {item.points} points
             </li>
         </div>
     )
-    return(
+    return (
         <ul>{stories}</ul>
     )
 }
 
 function PokerTable(props) {
-    if (props.isFlipped === false) {
-        const players = props.whoHasPlayed.map((item) => 
-            (isEquivalent(props.story, item.story)) ?
-            (<div>
+    if (props.currentStory.isCardFlipped === false) {
+        const players = props.currentStory.whoHasPlayed.map(item => (
+            <div>
                 <li>
-                    {item.user} has played!
+                    {item} has played!
                 </li>
-            </div>) : null
-        )
+            </div>
+        ))
 
-        return(
-            <ul>{ players } </ul>
-        )
-    } else {
-        const cards = props.playedCards.map((item, i) =>
-            (isEquivalent(props.story, item.story)) ?
-            (<div>
-                <li>
-                    { item.card }
-                </li>
-            </div>) : null
-        )
         return (
-            <ul>{ cards }</ul>
+            <ul>{players}</ul>
         )
-        
-        // var totalPoints = props.totalPoints
-        
-
     }
+    const cards = props.currentStory.playedCards.map(item => {
+        switch (item.card) {
+            case -1:
+                item.card = "?"
+                break;
+            case -2:
+                item.card = "Pass"
+                break;
+            case -3:
+                item.card = "Coffee Break"
+                break;
+            default:
+                break;
+        }
+        return (<div>
+            <li>{item.player} played {item.card}</li>
+        </div>)
+    })
+
+    return (
+        <ul>{cards}</ul>
+    )
 }
 
 function CardDeck(props) {
-    let deck = null
-    if (props.isFlipped === false) {
+    let deck
+    if (props.currentStory.isCardFlipped === false) {
         deck = props.deck.map((item, i) =>
             <button onClick={e => props.playCards(e, item)}>{item}</button>
         )
@@ -333,57 +366,22 @@ function CardDeck(props) {
             <button disabled>{item}</button>
         )
     }
-    
 
-    return(
-        <div>{ deck }</div>
-    )
-}
 
-function CurrentStory(props) {
-    return(
-        <div>
-            <h2>Current Story: {props.currentStory.title}</h2>
-            <h3>Story Description: {props.currentStory.description}</h3>
-        </div>
+    return (
+        <div>{deck}</div>
     )
 }
 
 function MemberList(props) {
-    const member = props.memberList.map((item, i) => 
+    const member = props.memberList.map((item, i) =>
         <div>
             <li>
                 {item.session_member_username}
             </li>
         </div>
     )
-    return(
+    return (
         <ul>{member}</ul>
     )
-}
-
-function isEquivalent(a, b) {
-    // Create arrays of property names
-    var aProps = Object.getOwnPropertyNames(a);
-    var bProps = Object.getOwnPropertyNames(b);
-
-    // If number of properties is different,
-    // objects are not equivalent
-    if (aProps.length !== bProps.length) {
-        return false;
-    }
-
-    for (var i = 0; i < aProps.length; i++) {
-        var propName = aProps[i];
-
-        // If values of same property are not equal,
-        // objects are not equivalent
-        if (a[propName] !== b[propName]) {
-            return false;
-        }
-    }
-
-    // If we made it this far, objects
-    // are considered equivalent
-    return true;
 }
