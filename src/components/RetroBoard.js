@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import './RetroBoard.css';
 import RetroBoardForm from './RetroBoardForm';
-import update from 'react-addons-update';
+import update from 'immutability-helper';
 
 // Note: Only session owner can see "End Sesion" button
 
 export default class RetroBoard extends Component {
     constructor(props) {
         super(props)
+        this.username = props.username;
         this.state = {
             sessionName: "Test",
             isOwner: false,
@@ -87,7 +88,18 @@ export default class RetroBoard extends Component {
             } else if (dataFromSocket.hasOwnProperty("exit_session_message")) {
                 alert(dataFromSocket.member + " left the session")
                 console.log("Kate, redirect user to dashboard here")
-            } else {
+            } else if(dataFromSocket.hasOwnProperty("delete_item_message")) {
+                const item_id = dataFromSocket.id;
+                const item_type = dataFromSocket.item_type;
+                this.refreshDeletedItem(item_id, item_type);
+            } else if(dataFromSocket.hasOwnProperty("edit_item_message")) {
+                const item_id = dataFromSocket.id;
+                const item_type = dataFromSocket.item_type;
+                const new_item_text = dataFromSocket.new_item_text;
+                const item_index = dataFromSocket.item_index;
+                this.refreshEditedItem(item_id, item_type, new_item_text, item_index);
+            }
+            else {
                 const retroBoardItem = dataFromSocket
                 this.addRetroBoardItems(retroBoardItem)
             }
@@ -99,6 +111,38 @@ export default class RetroBoard extends Component {
     submitText = (e, data) => {
         e.preventDefault()
         this.socket.send(JSON.stringify(data))
+    }
+
+    refreshEditedItem = (item_id, item_type, new_item_text, i) => {
+        if(item_type === 'WWW') {
+            this.setState({
+                whatWentWellItems: update(this.state.whatWentWellItems, {[i]: {item_text: {$set: new_item_text}}}),
+            })
+        } else if(item_type === 'WDN') {
+            this.setState({
+                whatDidNotItems: update(this.state.whatDidNotItems, {[i]: {item_text: {$set: new_item_text}}}),
+            })
+        } else if(item_type === 'AI') {
+            this.setState({
+                actionItems: update(this.state.actionItems, {[i]: {item_text: {$set: new_item_text}}}),
+            })
+        }
+    }
+
+    refreshDeletedItem = (item_id, item_type) => {
+        if(item_type === 'WWW') {
+            this.setState(prevState => ({
+                whatWentWellItems: prevState.whatWentWellItems.filter(el => el.id != item_id),
+            }));
+        } else if (item_type === 'WDN') {
+            this.setState(prevState => ({
+                whatDidNotItems: prevState.whatDidNotItems.filter(el => el.id != item_id),
+            }));
+        } else if (item_type === 'AI') {
+            this.setState(prevState => ({
+                actionItems: prevState.actionItems.filter(el => el.id != item_id),
+            }));
+        }
     }
 
     addRetroBoardItems = item => {
@@ -157,7 +201,8 @@ export default class RetroBoard extends Component {
             itemText: item.item_text,
             itemType: item.item_type,
             newItemText: entered_text,
-            item_id: item.id ? item.id : item.item_id,
+            item_id: item.id,
+            index: i
         };
         if(item.item_type === 'WWW') {
             this.setState({
@@ -208,15 +253,15 @@ export default class RetroBoard extends Component {
                 <div className="row">
                     <div className="column">
                         <h3>What Went Well</h3>
-                        <RetroBoardItemList itemList={this.state.whatWentWellItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatWentWellItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>What Did Not</h3>
-                        <RetroBoardItemList itemList={this.state.whatDidNotItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatDidNotItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>Action Items</h3>
-                        <RetroBoardItemList itemList={this.state.actionItems} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.actionItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                 </div>
                 {this.state.isOwner ?
@@ -233,12 +278,18 @@ function RetroBoardItemList(props) {
     const itemList = props.itemList;
     const editItem = props.editItem;
     const deleteItem = props.deleteItem;
+    const username = props.username;
     const items = itemList.map((item, i) => 
         <div>
             <li key={i}>
-                {item.item_text}
-                <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
-                <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                {item.owner_username == username || item.item_owner == username ?
+                    <div>
+                        {item.item_text}
+                        <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
+                        <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                    </div> :
+                    <div>{item.item_text}</div>
+                }
             </li>
         </div>
     )
