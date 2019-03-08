@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './RetroBoard.css';
 import RetroBoardForm from './RetroBoardForm';
-import update from 'react-addons-update';
+import update from 'immutability-helper';
 
 // Note: Only session owner can see "End Sesion" button
 
@@ -96,7 +96,8 @@ export default class RetroBoard extends Component {
                 const item_id = dataFromSocket.id;
                 const item_type = dataFromSocket.item_type;
                 const item_text = dataFromSocket.item_text;
-                this.refreshEditedItem(item_id, item_type, item_text);
+                const item_index = dataFromSocket.item_index;
+                this.refreshEditedItem(item_id, item_type, item_text, item_index);
             }
             else {
                 const retroBoardItem = dataFromSocket
@@ -112,7 +113,7 @@ export default class RetroBoard extends Component {
         this.socket.send(JSON.stringify(data))
     }
 
-    refreshEditedItem = (item_id, item_type, new_item_text) => {
+    refreshEditedItem = (item_id, item_type, new_item_text, i) => {
         if(item_type === 'WWW') {
             this.setState({
                 whatWentWellItems: update(this.state.whatWentWellItems, {[i]: {item_text: {$set: new_item_text}}}),
@@ -200,7 +201,8 @@ export default class RetroBoard extends Component {
             itemText: item.item_text,
             itemType: item.item_type,
             newItemText: entered_text,
-            item_id: item.id
+            item_id: item.id,
+            index: i
         };
         if(item.item_type === 'WWW') {
             this.setState({
