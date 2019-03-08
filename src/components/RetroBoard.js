@@ -95,9 +95,9 @@ export default class RetroBoard extends Component {
             } else if(dataFromSocket.hasOwnProperty("edit_item_message")) {
                 const item_id = dataFromSocket.id;
                 const item_type = dataFromSocket.item_type;
-                const item_text = dataFromSocket.item_text;
+                const new_item_text = dataFromSocket.new_item_text;
                 const item_index = dataFromSocket.item_index;
-                this.refreshEditedItem(item_id, item_type, item_text, item_index);
+                this.refreshEditedItem(item_id, item_type, new_item_text, item_index);
             }
             else {
                 const retroBoardItem = dataFromSocket
