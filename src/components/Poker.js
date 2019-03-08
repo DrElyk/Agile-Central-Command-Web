@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PokerEditPoints from "./PokerEditPoints";
 import './RetroBoard.css';
 
 
@@ -35,10 +36,11 @@ export default class Poker extends Component {
                     playedCards: [],
                     whoHasPlayed: [],
                     // setState card with one from server
-                    card: '',
+                    card: null,
                     //
                     isCardFlipped: false,
-                    isUserPlayed: false
+                    isUserPlayed: false,
+                    isOwnerEdittedPoints: false
                 }
                 this.setState({
                     stories: [...this.state.stories, modified_story]
@@ -121,17 +123,61 @@ export default class Poker extends Component {
                     })
 
                     let totalPoints = this.calculateStoryPoints()
-                    
+                    if (totalPoints != null) {
+                        this.setState(state => ({
+                            stories: state.stories.map((story, i) => {
+                                if (i === state.selectedStoryIndex) {
+                                    return { ...story, points: totalPoints }
+                                }
+                                return story
+                            })
+                        }))
+                    }
                     this.setState(state => ({
                         stories: state.stories.map((story, i) => {
                             if (i === state.selectedStoryIndex) {
-                                return { ...story, isCardFlipped: true, points: totalPoints}
+                                return { ...story, isCardFlipped: true}
                             }
                             return story
                         })
                     }))
-                    
                 })
+            } else if (dataFromSocket.hasOwnProperty("submit_points")) {
+                let currentStory = this.state.stories[this.state.selectedStoryIndex]
+                if (dataFromSocket.story === currentStory.id) {
+                    this.setState(state => ({
+                        stories: state.stories.map((story, i) => {
+                            if (i === state.selectedStoryIndex) {
+                                return { ...story, points: dataFromSocket.points, isOwnerEdittedPoints: false}
+                            }
+                            return story
+                        })
+                    }))
+                }
+            } else if (dataFromSocket.hasOwnProperty("reset_cards")) {
+                let currentStory = this.state.stories[this.state.selectedStoryIndex]
+                if (dataFromSocket.story === currentStory.id) {
+                    this.setState(state => ({
+                        stories: state.stories.map((story, i) => {
+                            if (i === state.selectedStoryIndex) {
+                                return {
+                                    ...story, 
+                                    points: null, 
+                                    playedCards: [],
+                                    whoHasPlayed: [],
+                                    card: null,
+                                    isCardFlipped: false,
+                                    isUserPlayed: false,
+                                    isOwnerEdittedPoints: false
+                                }
+                            }
+                            return story
+                        })
+                    }))
+                }
+            } else if (dataFromSocket.hasOwnProperty("end_game")) {
+                alert("Owner ended this game!")
+                console.log("Kate, redirect users back to dashboard here")
             }
         }
     }
@@ -214,6 +260,45 @@ export default class Poker extends Component {
         }))
     }
 
+    editPoints = () => {
+        this.setState(state => ({
+            stories: state.stories.map((story, i) => {
+                if (i === state.selectedStoryIndex) {
+                    return { ...story, isOwnerEdittedPoints: true }
+                }
+                return story
+            })
+        }))
+    }
+
+    submitPoints = (e,data) => {
+        e.preventDefault()
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        this.socket.send(JSON.stringify({
+            'submit_points': 'Owner wants to submit new story points',
+            'points': data.value,
+            'story': currentStory.id
+        }))
+    }
+
+    resetCards = () => {
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        this.socket.send(JSON.stringify({
+            'reset_cards': 'Owner wants to reset cards',
+            'story': currentStory.id
+        }))
+    }
+
+    endGame = () => {
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        this.socket.send(JSON.stringify({
+            'end_game': 'Owner wants to end session',
+            'story': currentStory.id
+        }))
+
+        // fetch: end poker
+    }
+
     calculateStoryPoints = () => {
         let currentStory = this.state.stories[this.state.selectedStoryIndex]
         let cardDeck = this.props.cardDeck
@@ -225,22 +310,23 @@ export default class Poker extends Component {
                 validPoints++
             }
         })
-        points = (points / validPoints)
-        for (let i = 0; i < cardDeck.length; i++) {
-            const card = cardDeck[i];
-            if (typeof card === 'number') {
-                if (points <= card) {
-                    points = card
-                    break;
+
+        if (points >= 0 && validPoints > 0) {
+            points = (points / validPoints)
+            for (let i = 0; i < cardDeck.length; i++) {
+                const card = cardDeck[i];
+                if (typeof card === 'number') {
+                    if (points <= card) {
+                        points = card
+                        break;
+                    }
                 }
             }
-        }
+        } else {
+            points = null
+        } 
+        
         return points
-    }
-
-    editPoints = (e, data) => {
-        e.preventDefault()
-
     }
 
     render() {
@@ -255,13 +341,12 @@ export default class Poker extends Component {
                     <div className="column">
                         <h2>Current Story: {currentStory.title}</h2>
                         <h3>Story Description: {currentStory.description}</h3>
-                        <h4>Total points: {currentStory.points} </h4>
-                        {this.state.isOwner ?
-                            <div>
-                                <button onClick={this.editPoints}>Edit Points</button>
-                            </div> : null
-                        }
-                        <h3>Time Remaining: </h3>
+                        <TotalPoints
+                            isOwner={this.state.isOwner}
+                            currentStory={currentStory}
+                            editPoints={this.editPoints}
+                            submitPoints={this.submitPoints}
+                        />
                     </div>
                     <div className="column">
                         <PokerTable
@@ -284,14 +369,13 @@ export default class Poker extends Component {
                                 <div>
                                     <button onClick={this.prevStory}>Previous Story</button>
                                     <button onClick={this.nextStory}>Next Story</button>
-                                    <button>Reset Cards</button>
+                                    <button onClick={this.resetCards}>Reset Cards</button>
                                     {currentStory.whoHasPlayed.length !== 0 && currentStory.isCardFlipped === false ?
                                         <button onClick={this.flipCards}>Flip Cards</button>
                                         :
                                         <button disabled>Flip Cards</button>
                                     }
-                                    <button>Add Stories</button>
-                                    <button>End Game</button>
+                                    <button onClick={this.endGame}>End Game</button>
                                 </div> : null
                             }
                             <h3>List of Stories: </h3>
@@ -384,4 +468,30 @@ function MemberList(props) {
     return (
         <ul>{member}</ul>
     )
+}
+
+function TotalPoints(props) {
+    const isOwner = props.isOwner
+    const currentStory = props.currentStory
+    const editPoints = props.editPoints
+    const submitPoints = props.submitPoints
+    if (isOwner) {
+        if (currentStory.isOwnerEdittedPoints) {
+            return (
+               <PokerEditPoints
+                currentStory={currentStory}
+                submitPoints={submitPoints}
+               />
+            )
+        } else {
+            return (
+                <div>
+                    <h4>Total Points: {currentStory.points}</h4>
+                    <button onClick={editPoints}>Edit Points</button>
+                </div>
+            )
+        }
+    } else {
+        return <h4>Total Points: {currentStory.points}</h4>
+    }
 }
