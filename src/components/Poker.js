@@ -35,9 +35,7 @@ export default class Poker extends Component {
                     points: story.story_points,
                     playedCards: [],
                     whoHasPlayed: [],
-                    // setState card with one from server
                     card: null,
-                    //
                     isCardFlipped: false,
                     isUserPlayed: false,
                     isOwnerEdittedPoints: false
