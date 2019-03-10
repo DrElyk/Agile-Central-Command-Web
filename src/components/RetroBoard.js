@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './RetroBoard.css';
 import RetroBoardForm from './RetroBoardForm';
+import RetroEditItemText from './RetroEditItemText';
 import update from 'immutability-helper';
 
 // Note: Only session owner can see "End Sesion" button
@@ -146,6 +147,7 @@ export default class RetroBoard extends Component {
     }
 
     addRetroBoardItems = item => {
+        item.isEditing = false;
         switch (item.item_type) {
             case "WWW":
                 this.setState({
@@ -195,8 +197,72 @@ export default class RetroBoard extends Component {
         )
     }
 
-    editItem = (e, item, i) => {
-        var entered_text = 'Text Changing';
+    startEditing = (e, item, index) => {
+        switch(item.item_type) {
+            case "WWW":
+                this.setState(state => ({
+                    whatWentWellItems: this.state.whatWentWellItems.map((item, i) => {
+                        if (i === index) {
+                            return { ...item, isEditing: true }
+                        }
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    whatDidNotItems: this.state.whatDidNotItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    actionItems: this.state.actionItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
+            case "WDN":
+                this.setState(state => ({
+                    whatWentWellItems: this.state.whatWentWellItems.map((item, i) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    whatDidNotItems: this.state.whatDidNotItems.map((item, i) => {
+                        if (i === index) {
+                            return { ...item, isEditing: true }
+                        }
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    actionItems: this.state.actionItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
+            case "AI":
+                this.setState(state => ({
+                    whatWentWellItems: this.state.whatWentWellItems.map((item, i) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    whatDidNotItems: this.state.whatDidNotItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                this.setState(state => ({
+                    actionItems: this.state.actionItems.map((item, i) => {
+                        if (i === index) {
+                            return { ...item, isEditing: true }
+                        }
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
+        }
+    }
+
+    editItem = (e, item, i, entered_text) => { 
         var item_state = {
             itemText: item.item_text,
             itemType: item.item_type,
@@ -204,18 +270,28 @@ export default class RetroBoard extends Component {
             item_id: item.id,
             index: i
         };
-        if(item.item_type === 'WWW') {
-            this.setState({
-                whatWentWellItems: update(this.state.whatWentWellItems, {[i]: {item_text: {$set: entered_text}}}),
-            })
-        } else if(item.item_type === 'WDN') {
-            this.setState({
-                whatDidNotItems: update(this.state.whatDidNotItems, {[i]: {item_text: {$set: entered_text}}}),
-            })
-        } else if(item.item_type === 'AI') {
-            this.setState({
-                actionItems: update(this.state.actionItems, {[i]: {item_text: {$set: entered_text}}}),
-            })
+        switch(item.item_type) {
+            case "WWW":
+                this.setState(state => ({
+                    whatWentWellItems: this.state.whatWentWellItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
+            case "WDN":
+                this.setState(state => ({
+                    whatDidNotItems: this.state.whatDidNotItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
+            case "AI":
+                this.setState(state => ({
+                    actionItems: this.state.actionItems.map((item, index) => {
+                        return {...item, isEditing: false }
+                    })
+                }))
+                break;
         }
         this.submitText(e, item_state);
     }
@@ -227,19 +303,7 @@ export default class RetroBoard extends Component {
             item_id: item.id ? item.id : item.item_id,
             delete: true
         };
-        if(item.item_type === 'WWW') {
-            this.setState(prevState => ({
-                whatWentWellItems: prevState.whatWentWellItems.filter(el => el != item),
-            }));
-        } else if (item.item_type === 'WDN') {
-            this.setState(prevState => ({
-                whatDidNotItems: prevState.whatDidNotItems.filter(el => el != item),
-            }));
-        } else if (item.item_type === 'AI') {
-            this.setState(prevState => ({
-                actionItems: prevState.actionItems.filter(el => el != item),
-            }));
-        }
+        item.isEditing = false;
         this.submitText(e, item_state);
     }
 
@@ -253,15 +317,15 @@ export default class RetroBoard extends Component {
                 <div className="row">
                     <div className="column">
                         <h3>What Went Well</h3>
-                        <RetroBoardItemList itemList={this.state.whatWentWellItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatWentWellItems} username={this.username} startEditing={this.startEditing} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>What Did Not</h3>
-                        <RetroBoardItemList itemList={this.state.whatDidNotItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.whatDidNotItems} username={this.username} startEditing={this.startEditing} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                     <div className="column">
                         <h3>Action Items</h3>
-                        <RetroBoardItemList itemList={this.state.actionItems} username={this.username} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
+                        <RetroBoardItemList itemList={this.state.actionItems} username={this.username} startEditing={this.startEditing} editItem={this.editItem} deleteItem={this.deleteItem}></RetroBoardItemList>
                     </div>
                 </div>
                 {this.state.isOwner ?
@@ -277,16 +341,27 @@ export default class RetroBoard extends Component {
 function RetroBoardItemList(props) {
     const itemList = props.itemList;
     const editItem = props.editItem;
+    const startEditing = props.startEditing;
     const deleteItem = props.deleteItem;
     const username = props.username;
+    var editingItem = false;
     const items = itemList.map((item, i) => 
         <div>
             <li key={i}>
                 {item.owner_username == username || item.item_owner == username ?
                     <div>
                         {item.item_text}
-                        <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
-                        <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                        {item.isEditing ?
+                        <EditText
+                            editItem={editItem}
+                            item={item}
+                            index={i}
+                        /> :
+                        <>
+                            <button type="button" onClick={e=>startEditing(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>
+                            <button type="button" onClick={e=>deleteItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Delete</button>
+                        </>
+                        }
                     </div> :
                     <div>{item.item_text}</div>
                 }
@@ -296,5 +371,20 @@ function RetroBoardItemList(props) {
     return (
         <ul>{items}</ul>
     )
+}
+
+function EditText(props) {
+    const editItem = props.editItem;
+    const item = props.item;
+    const index = props.index;
+
+    return (
+        <RetroEditItemText
+            editItem = {editItem}
+            item = {item}
+            index = {index}
+        />
+    )
+
 }
 
