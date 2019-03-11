@@ -1,18 +1,13 @@
 import React, { Component } from "react";
-import RetroBoard from "./RetroBoard";
-import Poker from "./Poker";
+import Lobby from "./Lobby";
 
 export default class Home extends Component {
     constructor(props) {
         super(props)
         this.state = {
             sessions: [],
-            isRetro: false,
-            isPoker: false,
-            selectedSession: {
-                id: -1,
-                title: ""
-            }
+            currentSession: null,
+            joinLobby: false
         }
     }
 
@@ -32,85 +27,45 @@ export default class Home extends Component {
         })
     }
 
-    displayRetro = () => {
-        this.setState({
-            isRetro: true
-        })
-    }
-
-    displayPoker = () => {
-        this.setState({
-            isPoker: true
-        })
-    }
-
-    selectedSession = (e, id, title) => {
+    selectSession = (e, session) => {
         e.preventDefault()
         this.setState({
-            selectedSession: {
-                id: id,
-                title: title
-            }
+            joinLobby: true,
+            currentSession: session
         })
     }
 
     render() {
-        const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
         return (
             <div>
-                {this.state.isRetro ? (
-                    <RetroBoard
-                        username={this.props.username}
-                        email={this.props.email}
-                        session={this.state.selectedSession}
-                    />
-                ) : (
-                    this.state.isPoker ? (
-                        <Poker 
+                <h1>Welcome, {this.props.username}</h1>
+                <button onClick={this.props.handle_logout}>Logout</button>
+                <div>
+                    {this.state.joinLobby ? 
+                        <Lobby
+                            session={this.state.currentSession}
                             username={this.props.username}
                             email={this.props.email}
-                            session={this.state.selectedSession}
-                            cardDeck={cardDeck}
                         />
-                    ) : (
-                        <div>
-                            <h1>Welcome, {this.props.username}</h1>
-                            <button onClick={this.props.handle_logout}>Logout</button>
-                            <div>
-                                <SessionList
-                                    sessionList={this.state.sessions}
-                                    displayRetro={this.displayRetro}
-                                    displayPoker={this.displayPoker}
-                                    selectedSession={this.selectedSession}
-                                />
-                            </div>
-                        </div>
-                    )
-                )}
-               
+                        :
+                        <SessionList
+                            sessionList={this.state.sessions}
+                            selectSession={this.selectSession}
+                        />
+                    }
+                </div>
             </div>
         )
     }
 }
 
 function SessionList(props) {
-    const displayRetro = props.displayRetro
-    const displayPoker = props.displayPoker
-    const selectedSession = props.selectedSession
-    const sessions = props.sessionList.map((item, i) =>
+    const selectSession = props.selectSession
+    const sessions = props.sessionList.map((item) =>
         <div>
             <li>
                 {item.title}
-                <button onClick={
-                    e => { 
-                        if (item.session_type === "R") {
-                            displayRetro()
-                        } else {
-                            displayPoker()
-                        }
-                        selectedSession(e, item.id, item.title)
-                    }
-                }>Join</button>
+                <button onClick={e => {selectSession(e, item)}}>Join</button>
             </li>
         </div>
     )

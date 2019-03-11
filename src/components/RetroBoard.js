@@ -246,9 +246,7 @@ export default class RetroBoard extends Component {
     render() {
         return (
             <div>
-                <h1>Welcome, {this.props.username}</h1>
-                <button onClick={this.props.handle_logout}>Logout</button>
-                <h2>Team Name - { this.props.session.title }</h2>
+                <h1>Session: {this.props.session.title}</h1>
                 <RetroBoardForm submitText={this.submitText} />
                 <div className="row">
                     <div className="column">
