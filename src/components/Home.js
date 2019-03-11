@@ -54,6 +54,22 @@ export default class Home extends Component {
         })
     }
 
+    addStories = (session) => {
+        fetch("http://localhost:8000/story_select/", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `JWT ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            'session': session.id,
+            'access_token': localStorage.getItem('access_token'),
+            'secret_access_token': localStorage.getItem('secret_access_token')
+          })
+        })
+    }
+
+
     render() {
         const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
         return (
@@ -82,6 +98,7 @@ export default class Home extends Component {
                                     displayRetro={this.displayRetro}
                                     displayPoker={this.displayPoker}
                                     selectedSession={this.selectedSession}
+                                    addStories={this.addStories}
                                 />
                             </div>
                         </div>
@@ -97,6 +114,7 @@ function SessionList(props) {
     const displayRetro = props.displayRetro
     const displayPoker = props.displayPoker
     const selectedSession = props.selectedSession
+    const addStories = props.addStories
     const sessions = props.sessionList.map((item, i) =>
         <div>
             <li>
@@ -111,6 +129,10 @@ function SessionList(props) {
                         selectedSession(e, item.id, item.title)
                     }
                 }>Join</button>
+                {item.session_type === "P" ?
+                    <button onClick={() => addStories(item)}>Add Stories</button>:
+                    <></>
+                }
             </li>
         </div>
     )

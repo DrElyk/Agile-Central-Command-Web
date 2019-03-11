@@ -45,7 +45,7 @@ export default class Poker extends Component {
                 })
             })
         })
-
+        
         url = new URL("http://localhost:8000/session-members/" + this.props.session.id)
         fetch(url, {
             headers: {
