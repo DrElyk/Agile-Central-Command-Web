@@ -259,6 +259,8 @@ export default class RetroBoard extends Component {
                     })
                 }))
                 break;
+            default:
+                break;
         }
     }
 
