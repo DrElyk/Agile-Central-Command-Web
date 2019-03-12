@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import PokerEditPoints from "./PokerEditPoints";
+import PokerSummary from "./PokerSummary";
 import './RetroBoard.css';
 
 
@@ -11,6 +12,7 @@ export default class Poker extends Component {
             selectedStoryIndex: 0,
             members: [],
             isOwner: false,
+            isEndGame: false
         }
 
         this.socket = new WebSocket(
@@ -174,8 +176,7 @@ export default class Poker extends Component {
                     }))
                 }
             } else if (dataFromSocket.hasOwnProperty("end_game")) {
-                alert("Owner ended this game!")
-                console.log("Kate, redirect users back to dashboard here")
+                this.setState({isEndGame: true})
             }
         }
     }
@@ -288,13 +289,14 @@ export default class Poker extends Component {
     }
 
     endGame = () => {
-        let currentStory = this.state.stories[this.state.selectedStoryIndex]
-        this.socket.send(JSON.stringify({
-            'end_game': 'Owner wants to end session',
-            'story': currentStory.id
-        }))
-
-        // fetch: end poker
+        // let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        // this.socket.send(JSON.stringify({
+        //     'end_game': 'Owner wants to end session',
+        //     'story': currentStory.id
+        // }))
+        this.setState({
+            isEndGame: !this.state.isEndGame
+        })
     }
 
     calculateStoryPoints = () => {
@@ -381,6 +383,13 @@ export default class Poker extends Component {
                         </div>
                     </div>
                 </div>
+                {this.state.isEndGame ?
+                    <PokerSummary 
+                        stories={this.state.stories}
+                        closeSummary={this.endGame}
+                        session={this.props.session}
+                    />: null
+                }
             </div>
         )
     }
