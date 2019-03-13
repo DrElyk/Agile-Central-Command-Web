@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import Lobby from "./Lobby";
+import PokerCreation from "./PokerCreation";
+import Poker from "./Poker";
 
 export default class Home extends Component {
     constructor(props) {
@@ -7,7 +9,8 @@ export default class Home extends Component {
         this.state = {
             sessions: [],
             currentSession: null,
-            joinLobby: false
+            joinLobby: false,
+            isSessionCreated: false
         }
     }
 
@@ -35,6 +38,12 @@ export default class Home extends Component {
         })
     }
 
+    createSession = () => {
+        this.setState({
+            isSessionCreated: true
+        })
+    }
+
     render() {
         return (
             <div>
@@ -48,10 +57,17 @@ export default class Home extends Component {
                             email={this.props.email}
                         />
                         :
-                        <SessionList
-                            sessionList={this.state.sessions}
-                            selectSession={this.selectSession}
-                        />
+                        <div>
+                            <button  onClick={this.createSession}>Create Session</button>
+                            <SessionList
+                                sessionList={this.state.sessions}
+                                selectSession={this.selectSession}
+                            />
+                            {this.state.isPokerCreated ?
+                                <PokerCreation />
+                                : null
+                            }
+                        </div>
                     }
                 </div>
             </div>
