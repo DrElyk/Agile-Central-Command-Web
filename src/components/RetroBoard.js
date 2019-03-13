@@ -259,6 +259,8 @@ export default class RetroBoard extends Component {
                     })
                 }))
                 break;
+            default:
+                break;
         }
     }
 
@@ -291,6 +293,8 @@ export default class RetroBoard extends Component {
                         return {...item, isEditing: false }
                     })
                 }))
+                break;
+            default:
                 break;
         }
         this.submitText(e, item_state);
@@ -344,7 +348,6 @@ function RetroBoardItemList(props) {
     const startEditing = props.startEditing;
     const deleteItem = props.deleteItem;
     const username = props.username;
-    var editingItem = false;
     const items = itemList.map((item, i) => 
         <div>
             <li key={i}>
