@@ -132,15 +132,15 @@ export default class RetroBoard extends Component {
     refreshDeletedItem = (item_id, item_type) => {
         if(item_type === 'WWW') {
             this.setState(prevState => ({
-                whatWentWellItems: prevState.whatWentWellItems.filter(el => el.id != item_id),
+                whatWentWellItems: prevState.whatWentWellItems.filter(el => el.id !== item_id),
             }));
         } else if (item_type === 'WDN') {
             this.setState(prevState => ({
-                whatDidNotItems: prevState.whatDidNotItems.filter(el => el.id != item_id),
+                whatDidNotItems: prevState.whatDidNotItems.filter(el => el.id !== item_id),
             }));
         } else if (item_type === 'AI') {
             this.setState(prevState => ({
-                actionItems: prevState.actionItems.filter(el => el.id != item_id),
+                actionItems: prevState.actionItems.filter(el => el.id !== item_id),
             }));
         }
     }
@@ -229,15 +229,15 @@ export default class RetroBoard extends Component {
         };
         if(item.item_type === 'WWW') {
             this.setState(prevState => ({
-                whatWentWellItems: prevState.whatWentWellItems.filter(el => el != item),
+                whatWentWellItems: prevState.whatWentWellItems.filter(el => el !== item),
             }));
         } else if (item.item_type === 'WDN') {
             this.setState(prevState => ({
-                whatDidNotItems: prevState.whatDidNotItems.filter(el => el != item),
+                whatDidNotItems: prevState.whatDidNotItems.filter(el => el !== item),
             }));
         } else if (item.item_type === 'AI') {
             this.setState(prevState => ({
-                actionItems: prevState.actionItems.filter(el => el != item),
+                actionItems: prevState.actionItems.filter(el => el !== item),
             }));
         }
         this.submitText(e, item_state);
@@ -282,7 +282,7 @@ function RetroBoardItemList(props) {
     const items = itemList.map((item, i) => 
         <div>
             <li key={i}>
-                {item.owner_username == username || item.item_owner == username ?
+                {item.owner_username === username || item.item_owner === username ?
                     <div>
                         {item.item_text}
                         <button type="button" onClick={e=>editItem(e, item, i)} style={{marginLeft: 5 + 'px'}}>Edit</button>

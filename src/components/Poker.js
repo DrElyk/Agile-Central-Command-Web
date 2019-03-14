@@ -33,6 +33,7 @@ export default class Poker extends Component {
                     title: story.title,
                     description: story.description,
                     points: story.story_points,
+                    key: story.key,
                     playedCards: [],
                     whoHasPlayed: [],
                     card: null,
@@ -269,9 +270,22 @@ export default class Poker extends Component {
         }))
     }
 
-    submitPoints = (e,data) => {
+    submitPoints = (e, data) => {
         e.preventDefault()
         let currentStory = this.state.stories[this.state.selectedStoryIndex]
+        fetch('http://localhost:8000/update_points/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                'key': currentStory.key,
+                'points': data.value,
+                'access_token': localStorage.getItem('access_token'),
+                'secret_access_token': localStorage.getItem('secret_access_token')
+            })
+        })
         this.socket.send(JSON.stringify({
             'submit_points': 'Owner wants to submit new story points',
             'points': data.value,
@@ -293,7 +307,18 @@ export default class Poker extends Component {
             'end_game': 'Owner wants to end session',
             'story': currentStory.id
         }))
-
+        fetch('http://localhost:8000/end_poker/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                'session': this.props.session.id,
+                'access_token': localStorage.getItem('access_token'),
+                'secret_access_token': localStorage.getItem('secret_access_token')
+            })
+        })
         // fetch: end poker
     }
 
