@@ -13,14 +13,21 @@ export default class PokerEditPoints extends Component {
     }
 
     handleTextChange(event) {
+        let newText = event.target.value;
         this.setState({
-            entered_text: event.target.value
+            entered_text: newText
         });
     }
     handleSelectChange(event) {
         this.setState({
             selected_type: event.target.value
         });
+    }
+
+    toHyphens() {
+        this.setState({
+            entered_text: this.state.entered_text.trim().replace(/\s+/g, '-')
+        })
     }
 
     render() {
@@ -31,7 +38,7 @@ export default class PokerEditPoints extends Component {
                     <option value="poker">Planning Poker</option>
                     <option value="retro">Retrospective Board</option>
                 </select>
-                <input type="submit" value="Save Session" />
+                <input type="submit" value="Save Session" onClick={() => this.toHyphens()}/>
             </form>
         );
     }

@@ -284,20 +284,34 @@ function SelectStories(props) {
     const chooseStory = props.chooseStory;
     const session = props.session;
     const stories = props.storyList.map((item, i) =>
-        <ul>{item.session === session.id && item.selected === false ?
-                <div>
-                    {item.title}&nbsp;
-                    <button onClick={() => chooseStory(i)}>Select</button>
-                </div> :
-                <></>
-            }
-        </ul>
+        <div>
+            <ul>{item.session === session.id && item.selected === false ?
+                    <div>
+                        <li>{item.title}&nbsp;<button onClick={() => chooseStory(i)}>Select</button></li>
+                    </div> :
+                    <></>
+                }
+            </ul>
+        </div>
+    )
+    const selected_stories = props.storyList.map((item, i) =>
+        <div>
+            <ul>{item.session === session.id && item.selected === true ?
+                    <div>
+                        <li>{item.title}</li>
+                    </div> :
+                    <></>
+                }
+            </ul>
+        </div>
     )
     return (
         <div>
-            <h1>Select stories to add to {session.title}</h1>
+            <h2>Select stories to add to {session.title}</h2>
             <ul>{stories}</ul>
             <button onClick={() => finishSelecting()}>Finish</button>
+            <h3>Selected Stories</h3>
+            <ul>{selected_stories}</ul>
         </div>
     )
 }
