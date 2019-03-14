@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import RetroBoard from "./RetroBoard";
 import Poker from "./Poker";
 import CreateSessionText from "./CreateSessionText"; 
+import update from 'immutability-helper';
 
 export default class Home extends Component {
     constructor(props) {
@@ -121,6 +122,7 @@ export default class Home extends Component {
                     .then(res => res.json())
                     .then(json => {
                         json.forEach(story => {
+                            story.selected = false;
                             this.setState({
                                 stories: [...this.state.stories, story]
                             })
@@ -153,10 +155,22 @@ export default class Home extends Component {
         this.setState({
             isAddingStories: false
         })
+        fetch('http://localhost:8000/remove_stories/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                'stories': this.state.stories
+            })
+        })
     }
 
-    chooseStory = () => {
-        alert("chose a story");
+    chooseStory = (index) => {
+        this.setState({
+            stories: update(this.state.stories, {[index]: {selected: {$set: true}}}),
+        })
     }
 
     render() {
@@ -270,10 +284,10 @@ function SelectStories(props) {
     const chooseStory = props.chooseStory;
     const session = props.session;
     const stories = props.storyList.map((item, i) =>
-        <ul>{item.session === session.id ?
+        <ul>{item.session === session.id && item.selected === false ?
                 <div>
                     {item.title}&nbsp;
-                    <button onClick={() => chooseStory()}>Select</button>
+                    <button onClick={() => chooseStory(i)}>Select</button>
                 </div> :
                 <></>
             }
