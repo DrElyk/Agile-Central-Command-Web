@@ -173,6 +173,12 @@ export default class Home extends Component {
         })
     }
 
+    unChooseStory = (index) => {
+        this.setState({
+            stories: update(this.state.stories, {[index]: {selected: {$set: false}}}),
+        })
+    }
+
     render() {
         const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
         return (
@@ -197,6 +203,7 @@ export default class Home extends Component {
                                 <SelectStories
                                     finishSelecting = {this.finishSelecting}
                                     chooseStory = {this.chooseStory}
+                                    unChooseStory = {this.unChooseStory}
                                     session = {this.state.newSession}
                                     storyList = {this.state.stories}
                                 />
@@ -282,6 +289,7 @@ function CreateSession(props) {
 function SelectStories(props) {
     const finishSelecting = props.finishSelecting;
     const chooseStory = props.chooseStory;
+    const unChooseStory = props.unChooseStory;
     const session = props.session;
     const stories = props.storyList.map((item, i) =>
         <div>
@@ -298,7 +306,7 @@ function SelectStories(props) {
         <div>
             <ul>{item.session === session.id && item.selected === true ?
                     <div>
-                        <li>{item.title}</li>
+                        <li>{item.title}&nbsp;<button onClick={() => unChooseStory(i)}>Remove</button></li>
                     </div> :
                     <></>
                 }
