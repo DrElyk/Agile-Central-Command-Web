@@ -254,7 +254,7 @@ function SessionList(props) {
                         <b>Retrospective Board - </b> :
                         <b>Planning Poker - </b>
                     }
-                    {item.title}&nbsp;
+                    {(item.title).trim().replace(/-/g, ' ')}
                     <button onClick={
                         e => { 
                             if (item.session_type === "R") {
