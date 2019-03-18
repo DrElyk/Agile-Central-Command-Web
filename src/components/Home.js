@@ -1,8 +1,7 @@
 import React, { Component } from "react";
-import RetroBoard from "./RetroBoard";
-import Poker from "./Poker";
 import CreateSessionText from "./CreateSessionText"; 
 import update from 'immutability-helper';
+import Lobby from "./Lobby";
 
 export default class Home extends Component {
     constructor(props) {
@@ -10,8 +9,6 @@ export default class Home extends Component {
         this.state = {
             stories: [],
             sessions: [],
-            isRetro: false,
-            isPoker: false,
             isAddingStories: false,
             creatingSession: false,
             newSession: {
@@ -19,10 +16,8 @@ export default class Home extends Component {
                 title: "",
                 session_type: ""
             },
-            selectedSession: {
-                id: -1,
-                title: ""
-            }
+            currentSession: null,
+            joinLobby: false
         }
     }
 
@@ -42,25 +37,11 @@ export default class Home extends Component {
         })
     }
 
-    displayRetro = () => {
-        this.setState({
-            isRetro: true
-        })
-    }
-
-    displayPoker = () => {
-        this.setState({
-            isPoker: true
-        })
-    }
-
-    selectedSession = (e, id, title) => {
+    selectSession = (e, session) => {
         e.preventDefault()
         this.setState({
-            selectedSession: {
-                id: id,
-                title: title
-            }
+            joinLobby: true,
+            currentSession: session
         })
     }
 
@@ -180,25 +161,19 @@ export default class Home extends Component {
     }
 
     render() {
-        const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
         return (
             <div>
-                {this.state.isRetro ? (
-                    <RetroBoard
+                <h1>Welcome, {this.props.username}</h1>
+                <button onClick={this.props.handle_logout}>Logout</button>
+                {this.state.joinLobby ? 
+                    <Lobby
+                        session={this.state.currentSession}
                         username={this.props.username}
                         email={this.props.email}
-                        session={this.state.selectedSession}
                     />
-                ) : (
-                    this.state.isPoker ? (
-                        <Poker 
-                            username={this.props.username}
-                            email={this.props.email}
-                            session={this.state.selectedSession}
-                            cardDeck={cardDeck}
-                        />
-                    ) : (
-                        this.state.isAddingStories ? (
+                    :
+                    <div>
+                        {this.state.isAddingStories ? (
                             <div>
                                 <SelectStories
                                     finishSelecting = {this.finishSelecting}
@@ -208,10 +183,8 @@ export default class Home extends Component {
                                     storyList = {this.state.stories}
                                 />
                             </div>
-                       ) : (
+                        ) : (
                             <div>
-                                <h1>Welcome, {this.props.username}</h1>
-                                <button onClick={this.props.handle_logout}>Logout</button>
                                 {!this.state.creatingSession ?
                                     <button onClick={e => 
                                         this.setState({
@@ -227,24 +200,21 @@ export default class Home extends Component {
                                         sessionList={this.state.sessions}
                                         displayRetro={this.displayRetro}
                                         displayPoker={this.displayPoker}
-                                        selectedSession={this.selectedSession}
                                         deleteSession={this.deleteSession}
+                                        selectSession={this.selectSession}
                                     />
                                 </div>
                             </div>
-                        )
-                    )
-                )}
-               
+                        )}
+                    </div>
+                }
             </div>
         )
     }
 }
 
 function SessionList(props) {
-    const displayRetro = props.displayRetro
-    const displayPoker = props.displayPoker
-    const selectedSession = props.selectedSession
+    const selectSession = props.selectSession
     const deleteSession = props.deleteSession
     const sessions = props.sessionList.map((item, i) =>
         <div>
@@ -255,16 +225,7 @@ function SessionList(props) {
                         <b>Planning Poker - </b>
                     }
                     {(item.title).trim().replace(/-/g, ' ')}
-                    <button onClick={
-                        e => { 
-                            if (item.session_type === "R") {
-                                displayRetro()
-                            } else {
-                                displayPoker()
-                            }
-                            selectedSession(e, item.id, item.title)
-                        }
-                    }>Join</button>
+                    <button onClick={e => selectSession(e, item)}>Join</button>
                     <button onClick={() => deleteSession(item.id)}>Delete</button>
                 </div>
             </li>
