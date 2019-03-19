@@ -11,6 +11,7 @@ export default class Lobby extends Component {
             isOwner: false,
             isGameStarts: false,
             isRetro: false,
+            isSessionStarted: false,
         }
 
         this.socket = new WebSocket(
@@ -50,6 +51,24 @@ export default class Lobby extends Component {
                 })
             } else {
                 console.log("You're a member, not an owner")
+            }
+        })
+
+        fetch('http://localhost:8000/session-started/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ 'session_title': this.props.session.title })
+        })
+        .then(res => res.json())
+        .then(json => {
+
+            if (json.is_started === true) {
+                this.setState({
+                    isSessionStarted: true
+                })
             }
         })
 
@@ -143,41 +162,51 @@ export default class Lobby extends Component {
     render() {
         // This cardDeck will be set by poker creation form
         const cardDeck = [0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, "?", "Pass", "Coffee Break"]
-
         return (
             <div>
-                {this.state.isGameStarts ? 
+                {this.state.isSessionStarted ? 
                     <div>
-                        {this.state.isRetro ? (
-                            <RetroBoard 
-                                username={this.props.username}
-                                email={this.props.email}
-                                session={this.props.session}
-                            />
-                        ) : (
-                            <Poker 
-                                username={this.props.username}
-                                email={this.props.email}
-                                session={this.props.session}
-                                cardDeck={cardDeck}
-                            />
-                        )}
-                    </div> 
-                :
+                        <h2>The session has started. Please go back to dashboard</h2>
+                        {/*
+                            Kate, open a pop up lets user go back to dashboard
+                         */}
+                    </div>
+                    :
                     <div>
-                        <h1>Session: {this.props.session.title}</h1>
-                        {this.state.isOwner ?
+                        {this.state.isGameStarts ?
                             <div>
-                                <button onClick={this.startGame}>Start Game</button>
-                                <button onClick={this.cancelGame}>Cancel Game</button>
-                            </div> :
+                                {this.state.isRetro ? (
+                                    <RetroBoard
+                                        username={this.props.username}
+                                        email={this.props.email}
+                                        session={this.props.session}
+                                    />
+                                ) : (
+                                        <Poker
+                                            username={this.props.username}
+                                            email={this.props.email}
+                                            session={this.props.session}
+                                            cardDeck={cardDeck}
+                                        />
+                                    )}
+                            </div>
+                            :
                             <div>
-                                <button onClick={this.exitGame}>Exit</button>
+                                <h1>Session: {this.props.session.title}</h1>
+                                {this.state.isOwner ?
+                                    <div>
+                                        <button onClick={this.startGame}>Start Game</button>
+                                        <button onClick={this.cancelGame}>Cancel Game</button>
+                                    </div> :
+                                    <div>
+                                        <button onClick={this.exitGame}>Exit</button>
+                                    </div>
+                                }
+                                <PlayerList
+                                    players={this.state.players}
+                                />
                             </div>
                         }
-                        <PlayerList
-                            players={this.state.players}
-                        />
                     </div>
                 }
             </div>
