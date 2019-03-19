@@ -22,7 +22,7 @@ export default class Home extends Component {
             joinLobby: false
         }
         this.socket = new WebSocket(
-            "ws://localhost:8000/home/"
+            "ws://localhost:8000/home/dashboard/"
         )
     }
 
@@ -46,6 +46,8 @@ export default class Home extends Component {
             if (dataFromSocket.hasOwnProperty("create_session")) {
                 this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type, 
                     dataFromSocket.entered_text, dataFromSocket.owner)
+            } else if(dataFromSocket.hasOwnProperty("delete_session")) {
+                this.refreshDeletedSession(dataFromSocket.session_id)
             }
         }
     }
@@ -56,6 +58,12 @@ export default class Home extends Component {
             joinLobby: true,
             currentSession: session
         })
+    }
+
+    refreshDeletedSession = (session_id) => {
+        this.setState(prevState => ({
+            sessions: prevState.sessions.filter(el => el.id !== session_id),
+        }));
     }
 
     refreshSession = (session_id, session_type, entered_text, owner) => {
@@ -134,6 +142,7 @@ export default class Home extends Component {
                     })
                 })
               }
+            
             this.socket.send(
                 JSON.stringify({
                     'create_session': 'Create a new session',
@@ -159,9 +168,12 @@ export default class Home extends Component {
             })
         })
 
-        this.setState(prevState => ({
-            sessions: prevState.sessions.filter(el => el.id !== session),
-        }));
+        this.socket.send(
+            JSON.stringify({
+                'delete_session': 'Delete session',
+                'session_id': session
+            })
+        )
     }
 
     finishSelecting = () => {
