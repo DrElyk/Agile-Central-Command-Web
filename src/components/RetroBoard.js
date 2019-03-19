@@ -86,6 +86,7 @@ export default class RetroBoard extends Component {
                 console.log("Kate, redirect user to dashboard here")
             } else if (dataFromSocket.hasOwnProperty("exit_session_message")) {
                 alert(dataFromSocket.member + " left the session")
+                this.socket.close()
                 console.log("Kate, redirect user to dashboard here")
             } else if(dataFromSocket.hasOwnProperty("delete_item_message")) {
                 const item_id = dataFromSocket.id;
@@ -183,7 +184,6 @@ export default class RetroBoard extends Component {
                 'secret_access_token': localStorage.getItem('secret_access_token')
             })
         })
-
     }
 
     exitSession = () => {
