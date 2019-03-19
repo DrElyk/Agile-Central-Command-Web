@@ -63,56 +63,60 @@ export default class Home extends Component {
                 'session_type': selected_type,
             })
         })
-          .then(res => res.json())
-          .then(json => {
-            this.setState({
-                newSession: {
-                    id: json.id,
-                    title: json.title,
-                    session_type: json.session_type
-                }
-            })
-            this.setState({
-                sessions: [...this.state.sessions, this.state.newSession],
-            })
-
-              if(selected_type === "poker") {
+        .then(res => res.json())
+        .then(json => {
+            if (json.error_message) {
+                alert(json.error_message)
+            } else {
                 this.setState({
-                    isAddingStories: true
+                    newSession: {
+                        id: json.id,
+                        title: json.title,
+                        session_type: json.session_type
+                    }
                 })
 
-                fetch("http://localhost:8000/story_select/", {
-                  method: "POST",
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `JWT ${localStorage.getItem('token')}`
-                  },
-                  body: JSON.stringify({
-                    'session': this.state.newSession.id,
-                    'access_token': localStorage.getItem('access_token'),
-                    'secret_access_token': localStorage.getItem('secret_access_token')
-                  })
+                this.setState({
+                    sessions: [...this.state.sessions, this.state.newSession],
                 })
-                .then(res => res.json())
-                .then(json => {
-                    fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
-                        headers: {
-                            Authorization: `JWT ${localStorage.getItem('token')}`
-                        }
+
+                if (selected_type === "poker") {
+                    this.setState({
+                        isAddingStories: true
                     })
-                    .then(res => res.json())
-                    .then(json => {
-                        json.forEach(story => {
-                            story.selected = false;
-                            this.setState({
-                                stories: [...this.state.stories, story]
-                            })
+
+                    fetch("http://localhost:8000/story_select/", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `JWT ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            'session': this.state.newSession.id,
+                            'access_token': localStorage.getItem('access_token'),
+                            'secret_access_token': localStorage.getItem('secret_access_token')
                         })
                     })
-                })
-              }
-
-          })
+                        .then(res => res.json())
+                        .then(json => {
+                            fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
+                                headers: {
+                                    Authorization: `JWT ${localStorage.getItem('token')}`
+                                }
+                            })
+                                .then(res => res.json())
+                                .then(json => {
+                                    json.forEach(story => {
+                                        story.selected = false;
+                                        this.setState({
+                                            stories: [...this.state.stories, story]
+                                        })
+                                    })
+                                })
+                        })
+                }
+            }
+        })
     }
 
     deleteSession = (session) => {
