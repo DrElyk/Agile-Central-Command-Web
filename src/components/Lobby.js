@@ -9,7 +9,7 @@ export default class Lobby extends Component {
         this.state = {
             players: [],
             isOwner: false,
-            isGameStarts: false,
+            isOwnerClicksStartGame: false,
             isRetro: false,
             isSessionStarted: false,
         }
@@ -106,16 +106,16 @@ export default class Lobby extends Component {
                 }
             } else if (dataFromSocket.hasOwnProperty("start_game")) {
                 this.setState({
-                    isGameStarts: true
+                    isOwnerClicksStartGame: true
                 })
+                this.socket.close()
             } else if (dataFromSocket.hasOwnProperty("display_retro")) {
                 this.setState({
                     isRetro: true
                 })
-                this.socket.close()
             } else if (dataFromSocket.hasOwnProperty("cancel_game")) {
                 alert("Owner of this session has cancelled the game.")
-
+                this.socket.close()
                 /* 
                     Redirect all users back to dashboard 
                  */
@@ -124,7 +124,7 @@ export default class Lobby extends Component {
                 this.setState((prevState) => ({
                     players: prevState.players.filter((_, i) => i !== indexPlayer),
                 }));
-
+                this.socket.close()
                 /*
                     Redirect user back to dashboard if user is not the owner
                 */
@@ -173,7 +173,7 @@ export default class Lobby extends Component {
                     </div>
                     :
                     <div>
-                        {this.state.isGameStarts ?
+                        {this.state.isOwnerClicksStartGame ?
                             <div>
                                 {this.state.isRetro ? (
                                     <RetroBoard
