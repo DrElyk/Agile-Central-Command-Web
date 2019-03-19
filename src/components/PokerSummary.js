@@ -17,7 +17,7 @@ export default class PokerSummary extends Component {
                     <h1>{this.props.session.title} (Poker Summary)</h1>
                     <Stories stories={this.props.stories} />
                     <button onClick={this.props.closeSummary}>Close</button>
-                    <button>Submit to Jira</button>
+                    <button onClick={this.props.submitToJira}>Submit to Jira</button>
                 </div>
             </div>
         )
