@@ -93,6 +93,7 @@ export default class Lobby extends Component {
                 this.setState({
                     isRetro: true
                 })
+                this.socket.close()
             } else if (dataFromSocket.hasOwnProperty("cancel_game")) {
                 alert("Owner of this session has cancelled the game.")
 
