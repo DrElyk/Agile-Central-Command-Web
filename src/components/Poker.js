@@ -178,6 +178,7 @@ export default class Poker extends Component {
                 }
             } else if (dataFromSocket.hasOwnProperty("end_game")) {
                 this.setState({isEndGame: true})
+                this.socket.close()
             }
         }
     }
