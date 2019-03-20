@@ -70,6 +70,7 @@ export default class App extends Component {
       username: "",
       email: ""
     });
+    window.location.reload();
   };
 
   oauth_user_props = () => {
@@ -95,16 +96,22 @@ export default class App extends Component {
     })
       .then(res => res.json())
       .then(json => {
-        localStorage.setItem("token", json.token);
-        localStorage.setItem("access_token", json.access_token);
-        localStorage.setItem("secret_access_token", json.secret_access_token);
-        this.setState({
-          logged_in: true,
-          username: json.username,
-          email: json.email,
-          auth: false,
-          oauth: true
-        });
+        if(json.token !== undefined) {
+          localStorage.setItem("token", json.token);
+          localStorage.setItem("access_token", json.access_token);
+          localStorage.setItem("secret_access_token", json.secret_access_token);
+          this.setState({
+            logged_in: true,
+            username: json.username,
+            email: json.email,
+            auth: false,
+            oauth: true
+          });
+        } else {
+          window.location.reload();
+          localStorage.removeItem("oauth_token");
+          localStorage.removeItem("oauth_token_secret");
+        }
       });
   };
 
