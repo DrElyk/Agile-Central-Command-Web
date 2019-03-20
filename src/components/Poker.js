@@ -134,6 +134,21 @@ export default class Poker extends Component {
                             })
                         }))
                     }
+
+                   fetch('http://localhost:8000/update_points/', {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `JWT ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            'key': currentStory.key,
+                            'points': totalPoints,
+                            'access_token': localStorage.getItem('access_token'),
+                            'secret_access_token': localStorage.getItem('secret_access_token')
+                        })
+                    })
+
                     this.setState(state => ({
                         stories: state.stories.map((story, i) => {
                             if (i === state.selectedStoryIndex) {
