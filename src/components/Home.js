@@ -96,8 +96,8 @@ export default class Home extends Component {
                 'session_type': selected_type,
             })
         })
-          .then(res => res.json())
-          .then(json => {
+        .then(res => res.json())
+        .then(json => {
             this.setState({
                 newSession: {
                     id: json.id,
@@ -107,22 +107,22 @@ export default class Home extends Component {
                 }
             })
 
-              if(selected_type === "poker") {
+            if(selected_type === "poker") {
                 this.setState({
                     isAddingStories: true
                 })
 
                 fetch("http://localhost:8000/story_select/", {
-                  method: "POST",
-                  headers: {
+                    method: "POST",
+                    headers: {
                     'Content-Type': 'application/json',
                     Authorization: `JWT ${localStorage.getItem('token')}`
-                  },
-                  body: JSON.stringify({
+                    },
+                    body: JSON.stringify({
                     'session': this.state.newSession.id,
                     'access_token': localStorage.getItem('access_token'),
                     'secret_access_token': localStorage.getItem('secret_access_token')
-                  })
+                    })
                 })
                 .then(res => res.json())
                 .then(json => {
@@ -141,7 +141,7 @@ export default class Home extends Component {
                         })
                     })
                 })
-              }
+            }
             
             this.socket.send(
                 JSON.stringify({
@@ -152,8 +152,7 @@ export default class Home extends Component {
                     'owner_username': this.state.newSession.owner_username
                 })
             )
-
-          })
+        })
     }
 
     deleteSession = (session) => {
