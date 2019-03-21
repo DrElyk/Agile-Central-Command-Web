@@ -3,7 +3,6 @@ import React, { Component } from "react";
 export default class PokerEditPoints extends Component {
     constructor(props) {
         super(props);
-        this.createSession = props.createSession;
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.state={

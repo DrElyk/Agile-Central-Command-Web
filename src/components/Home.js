@@ -7,6 +7,7 @@ export default class Home extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            owner: -1,
             stories: [],
             sessions: [],
             isAddingStories: false,
@@ -14,11 +15,16 @@ export default class Home extends Component {
             newSession: {
                 id: -1,
                 title: "",
-                session_type: ""
+                session_type: "",
+                owner_username: ""
             },
             currentSession: null,
             joinLobby: false
         }
+
+        this.socket = new WebSocket(
+            "ws://localhost:8000/home/dashboard/"
+        )
     }
 
     componentDidMount() {
@@ -35,6 +41,16 @@ export default class Home extends Component {
                 })
             })
         })
+
+        this.socket.onmessage = (e) => {
+            const dataFromSocket = JSON.parse(e.data)
+            if (dataFromSocket.hasOwnProperty("create_session")) {
+                this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type,
+                    dataFromSocket.entered_text, dataFromSocket.owner)
+            } else if (dataFromSocket.hasOwnProperty("delete_session")) {
+                this.refreshDeletedSession(dataFromSocket.session_id)
+            }
+        }
     }
 
     selectSession = (e, session) => {
@@ -45,8 +61,26 @@ export default class Home extends Component {
         })
     }
 
+    refreshDeletedSession = (session_id) => {
+        this.setState(prevState => ({
+            sessions: prevState.sessions.filter(el => el.id !== session_id),
+        }));
+    }
+
+    refreshSession = (session_id, session_type, entered_text, owner) => {
+        let newSession = {
+            id: session_id,
+            title: entered_text,
+            session_type: session_type,
+            owner_username: owner
+        }
+        this.setState({
+            sessions: [...this.state.sessions, newSession]
+        })
+    }
+
     createSession = (e, entered_text, selected_type) => {
-        //update ui and database
+        e.preventDefault()
         this.setState({
             creatingSession: false
         })
@@ -58,7 +92,7 @@ export default class Home extends Component {
                 Authorization: `JWT ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({
-                'username': this.props.username,
+                'email': this.props.email,
                 'title': entered_text,
                 'session_type': selected_type,
             })
@@ -72,12 +106,9 @@ export default class Home extends Component {
                     newSession: {
                         id: json.id,
                         title: json.title,
-                        session_type: json.session_type
+                        session_type: json.session_type,
+                        owner_username: json.owner
                     }
-                })
-
-                this.setState({
-                    sessions: [...this.state.sessions, this.state.newSession],
                 })
 
                 if (selected_type === "poker") {
@@ -97,24 +128,34 @@ export default class Home extends Component {
                             'secret_access_token': localStorage.getItem('secret_access_token')
                         })
                     })
+                    .then(res => res.json())
+                    .then(json => {
+                        fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
+                            headers: {
+                                Authorization: `JWT ${localStorage.getItem('token')}`
+                            }
+                        })
                         .then(res => res.json())
                         .then(json => {
-                            fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
-                                headers: {
-                                    Authorization: `JWT ${localStorage.getItem('token')}`
-                                }
-                            })
-                                .then(res => res.json())
-                                .then(json => {
-                                    json.forEach(story => {
-                                        story.selected = false;
-                                        this.setState({
-                                            stories: [...this.state.stories, story]
-                                        })
-                                    })
+                            json.forEach(story => {
+                                story.selected = false;
+                                this.setState({
+                                    stories: [...this.state.stories, story]
                                 })
+                            })
                         })
+                    })
                 }
+
+                this.socket.send(
+                    JSON.stringify({
+                        'create_session': 'Create a new session',
+                        'entered_text': this.state.newSession.title,
+                        'session_type': this.state.newSession.session_type,
+                        'session_id': this.state.newSession.id,
+                        'owner_username': this.state.newSession.owner_username
+                    })
+                )
             }
         })
     }
@@ -131,9 +172,12 @@ export default class Home extends Component {
             })
         })
 
-        this.setState(prevState => ({
-            sessions: prevState.sessions.filter(el => el.id !== session),
-        }));
+        this.socket.send(
+            JSON.stringify({
+                'delete_session': 'Delete session',
+                'session_id': session
+            })
+        )
     }
 
     finishSelecting = () => {
@@ -206,6 +250,7 @@ export default class Home extends Component {
                                         displayPoker={this.displayPoker}
                                         deleteSession={this.deleteSession}
                                         selectSession={this.selectSession}
+                                        username={this.props.username}
                                     />
                                 </div>
                             </div>
@@ -220,6 +265,7 @@ export default class Home extends Component {
 function SessionList(props) {
     const selectSession = props.selectSession
     const deleteSession = props.deleteSession
+    const username = props.username
     const sessions = props.sessionList.map((item, i) =>
         <div>
             <li>
@@ -230,8 +276,12 @@ function SessionList(props) {
                     }
                     {(item.title).trim().replace(/-/g, ' ')}
                     <button onClick={e => selectSession(e, item)}>Join</button>
-                    <button onClick={() => deleteSession(item.id)}>Delete</button>
-                </div>
+                    {item.owner_username === username ?
+                        <button onClick={() => deleteSession(item.id)}>Delete</button>
+                        :
+                        null
+                    }
+                    </div>
             </li>
         </div>
     )
