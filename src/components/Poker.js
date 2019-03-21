@@ -134,6 +134,21 @@ export default class Poker extends Component {
                             })
                         }))
                     }
+
+                   fetch('http://localhost:8000/update_points/', {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `JWT ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            'key': currentStory.key,
+                            'points': totalPoints,
+                            'access_token': localStorage.getItem('access_token'),
+                            'secret_access_token': localStorage.getItem('secret_access_token')
+                        })
+                    })
+
                     this.setState(state => ({
                         stories: state.stories.map((story, i) => {
                             if (i === state.selectedStoryIndex) {
@@ -303,13 +318,14 @@ export default class Poker extends Component {
         }))
     }
 
-    endGame = () => {
-        /* TODO: move this to poker summary */
-        /* let currentStory = this.state.stories[this.state.selectedStoryIndex]
+    submitToJira = () => {
+        /*
+        let currentStory = this.state.stories[this.state.selectedStoryIndex]
         this.socket.send(JSON.stringify({
             'end_game': 'Owner wants to end session',
             'story': currentStory.id
         }))
+        */
         fetch('http://localhost:8000/end_poker/', {
             method: "POST",
             headers: {
@@ -321,7 +337,10 @@ export default class Poker extends Component {
                 'access_token': localStorage.getItem('access_token'),
                 'secret_access_token': localStorage.getItem('secret_access_token')
             })
-        }) */
+        })
+    }
+
+    endGame = () => {
         this.setState({
             isEndGame: !this.state.isEndGame
         })
@@ -416,6 +435,7 @@ export default class Poker extends Component {
                         stories={this.state.stories}
                         closeSummary={this.endGame}
                         session={this.props.session}
+                        submitToJira={this.submitToJira}
                     />: null
                 }
             </div>
