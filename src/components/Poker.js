@@ -124,6 +124,7 @@ export default class Poker extends Component {
                     })
 
                     let totalPoints = this.calculateStoryPoints()
+                    console.log(totalPoints)
                     if (totalPoints != null) {
                         this.setState(state => ({
                             stories: state.stories.map((story, i) => {
@@ -133,21 +134,23 @@ export default class Poker extends Component {
                                 return story
                             })
                         }))
-                    }
 
-                   fetch('http://localhost:8000/update_points/', {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `JWT ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({
-                            'key': currentStory.key,
-                            'points': totalPoints,
-                            'access_token': localStorage.getItem('access_token'),
-                            'secret_access_token': localStorage.getItem('secret_access_token')
-                        })
-                    })
+                        if (this.state.isOwner) {
+                            fetch('http://localhost:8000/update_points/', {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `JWT ${localStorage.getItem('token')}`
+                                },
+                                body: JSON.stringify({
+                                    'key': currentStory.key,
+                                    'points': totalPoints,
+                                    'access_token': localStorage.getItem('access_token'),
+                                    'secret_access_token': localStorage.getItem('secret_access_token')
+                                })
+                            })
+                        }
+                    }
 
                     this.setState(state => ({
                         stories: state.stories.map((story, i) => {
@@ -178,7 +181,6 @@ export default class Poker extends Component {
                             if (i === state.selectedStoryIndex) {
                                 return {
                                     ...story, 
-                                    points: null, 
                                     playedCards: [],
                                     whoHasPlayed: [],
                                     card: null,
