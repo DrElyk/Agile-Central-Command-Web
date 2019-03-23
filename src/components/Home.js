@@ -55,6 +55,12 @@ export default class Home extends Component {
 
     selectSession = (e, session) => {
         e.preventDefault()
+        this.socket.send(
+            JSON.stringify({
+                'close_socket': 'close the home socket'
+            })
+        )
+        this.socket.close()
         this.setState({
             joinLobby: true,
             currentSession: session
