@@ -147,15 +147,7 @@ export default class Home extends Component {
                     })
                 }
 
-                this.socket.send(
-                    JSON.stringify({
-                        'create_session': 'Create a new session',
-                        'entered_text': this.state.newSession.title,
-                        'session_type': this.state.newSession.session_type,
-                        'session_id': this.state.newSession.id,
-                        'owner_username': this.state.newSession.owner_username
-                    })
-                )
+
             }
         })
     }
@@ -194,6 +186,16 @@ export default class Home extends Component {
                 'stories': this.state.stories
             })
         })
+
+        this.socket.send(
+            JSON.stringify({
+                'create_session': 'Create a new session',
+                'entered_text': this.state.newSession.title,
+                'session_type': this.state.newSession.session_type,
+                'session_id': this.state.newSession.id,
+                'owner_username': this.state.newSession.owner_username
+            })
+        )
     }
 
     chooseStory = (index) => {
