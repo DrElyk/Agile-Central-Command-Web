@@ -124,7 +124,6 @@ export default class Poker extends Component {
                     })
 
                     let totalPoints = this.calculateStoryPoints()
-                    console.log(totalPoints)
                     if (totalPoints != null) {
                         this.setState(state => ({
                             stories: state.stories.map((story, i) => {
@@ -419,7 +418,10 @@ export default class Poker extends Component {
                                     <button onClick={this.prevStory}>Previous Story</button>
                                     <button onClick={this.nextStory}>Next Story</button>
                                     <button onClick={this.resetCards}>Reset Cards</button>
-                                    {currentStory.whoHasPlayed.length !== 0 && currentStory.isCardFlipped === false ?
+                                    {currentStory.whoHasPlayed.length !== 0 &&
+                                        currentStory.whoHasPlayed.length === this.state.members.length && 
+                                        currentStory.isCardFlipped === false 
+                                        ?
                                         <button onClick={this.flipCards}>Flip Cards</button>
                                         :
                                         <button disabled>Flip Cards</button>
