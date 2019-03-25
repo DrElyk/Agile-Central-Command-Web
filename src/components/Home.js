@@ -145,6 +145,16 @@ export default class Home extends Component {
                             })
                         })
                     })
+                } else {
+                    this.socket.send(
+                        JSON.stringify({
+                            'create_session': 'create_session',
+                            'entered_text': this.state.newSession.title,
+                            'session_type': this.state.newSession.session_type,
+                            'session_id': this.state.newSession.id,
+                            'owner_username': this.state.newSession.owner_username
+                        })
+                    )
                 }
 
 
@@ -189,7 +199,7 @@ export default class Home extends Component {
 
         this.socket.send(
             JSON.stringify({
-                'create_session': 'Create a new session',
+                'create_session': 'create_session',
                 'entered_text': this.state.newSession.title,
                 'session_type': this.state.newSession.session_type,
                 'session_id': this.state.newSession.id,

@@ -143,6 +143,7 @@ export default class Poker extends Component {
                                 },
                                 body: JSON.stringify({
                                     'key': currentStory.key,
+                                    'id': currentStory.id,
                                     'points': totalPoints,
                                     'access_token': localStorage.getItem('access_token'),
                                     'secret_access_token': localStorage.getItem('secret_access_token')
