@@ -12,7 +12,7 @@ export default class RetroBoard extends Component {
             actionItems: []
         }
         this.socket = new WebSocket(
-            "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
+            "ws://dacc.us-east-2.elasticbeanstalk.com/retro/" + this.state.sessionName + "/?" + props.email
         )
         this.socket.onmessage = function (e) {
             console.log(e.data)

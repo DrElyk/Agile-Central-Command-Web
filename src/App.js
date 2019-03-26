@@ -16,7 +16,7 @@ export default class App extends Component {
 
     componentDidMount() {
         if (this.state.logged_in) {
-            fetch('http://localhost:8000/current-user/', {
+            fetch('http://dacc.us-east-2.elasticbeanstalk.com/current-user/', {
                 headers: {
                     Authorization: `JWT ${localStorage.getItem('token')}`
                 }
@@ -39,7 +39,7 @@ export default class App extends Component {
 
     handle_authentication = (e, data) => {
         e.preventDefault();
-        fetch('http://localhost:8000/users/', {
+        fetch('http://dacc.us-east-2.elasticbeanstalk.com/users/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -69,15 +69,15 @@ export default class App extends Component {
     render() {
         return (
             <div>
-                {this.state.logged_in ? this.state.email && this.state.username ? 
-                    <Home 
-                        handle_logout={this.handle_logout} 
-                        username={this.state.username} 
+                {this.state.logged_in ? this.state.email && this.state.username ?
+                    <Home
+                        handle_logout={this.handle_logout}
+                        username={this.state.username}
                         email={this.state.email}
                     /> : <div>Loading...</div>
                     :
-                    <Login 
-                        handle_authentication={this.handle_authentication} 
+                    <Login
+                        handle_authentication={this.handle_authentication}
                     />
                 }
             </div>

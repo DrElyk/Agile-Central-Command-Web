@@ -11,7 +11,7 @@ export default class Home extends Component {
             actionItems: []
         }
         this.socket = new WebSocket(
-            "ws://localhost:8000/retro/" + this.state.sessionName + "/?" + props.email
+            "ws://dacc.us-east-2.elasticbeanstalk.com/retro/" + this.state.sessionName + "/?" + props.email
         )
 
         console.log("this is session name: " + this.state.sessionName)
@@ -20,14 +20,17 @@ export default class Home extends Component {
     }
 
     componentDidMount() {
-        this.socket.onmessage = function (e) {
-            console.log(e.data)
-            // this.setState({ actionItems: [...this.state.actionItems, e.data] });
+        // this.socket.onmessage = function (e) {
+        //     console.log(e.data)
+        //     // this.setState({ actionItems: [...this.state.actionItems, e.data] });
+        // }
+        this.socket.onmessage = (e) => {
+          const dataFromSocket = JSON.parse(e.data)
+          console.log(dataFromSocket)
         }
     }
     submitText(e, data) {
         e.preventDefault()
-        console.log(data)
         this.socket.send(JSON.stringify(data))
     }
 
