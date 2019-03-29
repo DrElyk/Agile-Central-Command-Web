@@ -340,6 +340,12 @@ export default class Poker extends Component {
                 'secret_access_token': localStorage.getItem('secret_access_token')
             })
         })
+        this.socket.send(
+            JSON.stringify({
+                'close_socket': 'close the home socket'
+            })
+        )
+        this.socket.close()
     }
 
     endGame = () => {
