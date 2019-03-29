@@ -55,6 +55,12 @@ export default class Home extends Component {
 
     selectSession = (e, session) => {
         e.preventDefault()
+        this.socket.send(
+            JSON.stringify({
+                'close_socket': 'close the home socket'
+            })
+        )
+        this.socket.close()
         this.setState({
             joinLobby: true,
             currentSession: session
@@ -182,9 +188,11 @@ export default class Home extends Component {
         )
     }
 
-    finishSelecting = () => {
+    finishSelecting = (session) => {
         this.setState({
-            isAddingStories: false
+            isAddingStories: false,
+            currentSession: session,
+            joinLobby: true
         })
         fetch('http://localhost:8000/remove_stories/', {
             method: "POST",
@@ -344,7 +352,7 @@ function SelectStories(props) {
         <div>
             <h2>Select stories to add to {session.title}</h2>
             <ul>{stories}</ul>
-            <button onClick={() => finishSelecting()}>Finish</button>
+            <button onClick={() => finishSelecting(session)}>Finish</button>
             <h3>Selected Stories</h3>
             <ul>{selected_stories}</ul>
         </div>
