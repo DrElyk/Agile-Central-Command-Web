@@ -322,7 +322,7 @@ function SelectStories(props) {
         <div>
             <ul>{item.session === session.id && item.selected === false ?
                     <div>
-                        <li>{item.title}&nbsp;<button onClick={() => chooseStory(i)}>Select</button></li>
+                        <li>{item.title} : {item.story_points}&nbsp;<button onClick={() => chooseStory(i)}>Select</button></li>
                     </div> :
                     <></>
                 }
@@ -333,7 +333,7 @@ function SelectStories(props) {
         <div>
             <ul>{item.session === session.id && item.selected === true ?
                     <div>
-                        <li>{item.title}&nbsp;<button onClick={() => unChooseStory(i)}>Remove</button></li>
+                        <li>{item.title} : {item.story_points}&nbsp;<button onClick={() => unChooseStory(i)}>Remove</button></li>
                     </div> :
                     <></>
                 }

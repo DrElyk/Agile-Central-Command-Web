@@ -96,6 +96,7 @@ export default class Poker extends Component {
                     this.setState(state => ({
                         stories: state.stories.map((story, i) => {
                             if (i === state.selectedStoryIndex) {
+                                if(this.state.isOwner && story.whoHasPlayed.length+1 >= this.state.members.length) {alert("All Players have played")}
                                 return { ...story, isUserPlayed: true, whoHasPlayed: [...story.whoHasPlayed, player] }
                             }
                             return story
