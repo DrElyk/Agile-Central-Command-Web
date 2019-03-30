@@ -124,7 +124,6 @@ export default class Lobby extends Component {
                 this.setState((prevState) => ({
                     players: prevState.players.filter((_, i) => i !== indexPlayer),
                 }));
-                this.socket.close()
                 /*
                     Redirect user back to dashboard if user is not the owner
                 */
