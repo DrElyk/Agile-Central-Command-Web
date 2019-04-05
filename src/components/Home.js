@@ -45,8 +45,16 @@ export default class Home extends Component {
         this.socket.onmessage = (e) => {
             const dataFromSocket = JSON.parse(e.data)
             if (dataFromSocket.hasOwnProperty("create_session")) {
-                this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type,
-                    dataFromSocket.entered_text, dataFromSocket.owner)
+                let foundSession = false;
+                this.state.sessions.forEach(function(element) {
+                    if(element.id === dataFromSocket.session_id) {
+                        foundSession = true;
+                    }
+                });
+                if(foundSession === false) {
+                    this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type,
+                        dataFromSocket.entered_text, dataFromSocket.owner)
+                }
             } else if (dataFromSocket.hasOwnProperty("delete_session")) {
                 this.refreshDeletedSession(dataFromSocket.session_id)
             }
@@ -162,8 +170,6 @@ export default class Home extends Component {
                         })
                     )
                 }
-
-
             }
         })
     }
