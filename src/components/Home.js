@@ -169,6 +169,10 @@ export default class Home extends Component {
                             'owner_username': this.state.newSession.owner_username
                         })
                     )
+                    this.setState({
+                        currentSession: this.state.newSession,
+                        joinLobby: true
+                    })
                 }
             }
         })
