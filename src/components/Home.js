@@ -16,7 +16,9 @@ export default class Home extends Component {
                 id: -1,
                 title: "",
                 session_type: "",
-                owner_username: ""
+                owner_username: "",
+                card_type: "",
+                velocity: 0
             },
             currentSession: null,
             joinLobby: false
@@ -53,7 +55,19 @@ export default class Home extends Component {
                 });
                 if(foundSession === false) {
                     this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type,
-                        dataFromSocket.entered_text, dataFromSocket.owner)
+                        dataFromSocket.entered_text, null, null, dataFromSocket.owner)
+                }
+            } else if (dataFromSocket.hasOwnProperty("create_session_poker")) {
+                let foundSession = false;
+                this.state.sessions.forEach(function(element) {
+                    if(element.id === dataFromSocket.session_id) {
+                        foundSession = true;
+                    }
+                });
+                if(foundSession === false) {
+                    this.refreshSession(dataFromSocket.session_id, dataFromSocket.session_type,
+                        dataFromSocket.entered_text, dataFromSocket.card_type, dataFromSocket.velocity,
+                        dataFromSocket.owner)
                 }
             } else if (dataFromSocket.hasOwnProperty("delete_session")) {
                 this.refreshDeletedSession(dataFromSocket.session_id)
@@ -81,16 +95,30 @@ export default class Home extends Component {
         }));
     }
 
-    refreshSession = (session_id, session_type, entered_text, owner) => {
-        let newSession = {
-            id: session_id,
-            title: entered_text,
-            session_type: session_type,
-            owner_username: owner
+    refreshSession = (session_id, session_type, entered_text, card_type, velocity, owner) => {
+        if(session_type === "P") {
+            let newSession = {
+                id: session_id,
+                title: entered_text,
+                session_type: session_type,
+                card_type: card_type,
+                velocity: velocity,
+                owner_username: owner
+            }
+            this.setState({
+                sessions: [...this.state.sessions, newSession]
+            })
+        } else {
+            let newSession = {
+                id: session_id,
+                title: entered_text,
+                session_type: session_type,
+                owner_username: owner
+            }
+            this.setState({
+                sessions: [...this.state.sessions, newSession]
+            })
         }
-        this.setState({
-            sessions: [...this.state.sessions, newSession]
-        })
     }
 
     createSession = (e, entered_text, selected_type) => {
@@ -125,55 +153,92 @@ export default class Home extends Component {
                     }
                 })
 
-                if (selected_type === "poker") {
-                    this.setState({
-                        isAddingStories: true
+                this.socket.send(
+                    JSON.stringify({
+                        'create_session': 'create_session',
+                        'entered_text': this.state.newSession.title,
+                        'session_type': this.state.newSession.session_type,
+                        'session_id': this.state.newSession.id,
+                        'owner_username': this.state.newSession.owner_username,
                     })
+                )
+                this.setState({
+                    currentSession: this.state.newSession,
+                    joinLobby: true
+                })
+            }
+        })
+    }
 
-                    fetch("http://localhost:8000/story_select/", {
-                        method: "POST",
+    createSessionPoker = (e, entered_text, selected_type, card_type, velocity) => {
+        e.preventDefault()
+        this.setState({
+            creatingSession: false
+        })
+
+        fetch('http://localhost:8000/sessions/', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `JWT ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                'email': this.props.email,
+                'title': entered_text,
+                'session_type': selected_type,
+                'card_type': card_type,
+                'velocity': velocity
+            })
+        })
+        .then(res => res.json())
+        .then(json => {
+            if (json.error_message) {
+                alert(json.error_message)
+            } else {
+                this.setState({
+                    newSession: {
+                        id: json.id,
+                        title: json.title,
+                        session_type: json.session_type,
+                        owner_username: json.owner,
+                        card_type: json.card_type,
+                        velocity: json.velocity
+                    }
+                })
+
+                this.setState({
+                    isAddingStories: true
+                })
+
+                fetch("http://localhost:8000/story_select/", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `JWT ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        'session': this.state.newSession.id,
+                        'access_token': localStorage.getItem('access_token'),
+                        'secret_access_token': localStorage.getItem('secret_access_token')
+                    })
+                })
+                .then(res => res.json())
+                .then(json => {
+                    fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
                         headers: {
-                            'Content-Type': 'application/json',
                             Authorization: `JWT ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({
-                            'session': this.state.newSession.id,
-                            'access_token': localStorage.getItem('access_token'),
-                            'secret_access_token': localStorage.getItem('secret_access_token')
-                        })
+                        }
                     })
                     .then(res => res.json())
                     .then(json => {
-                        fetch("http://localhost:8000/stories/" + this.state.newSession.id, {
-                            headers: {
-                                Authorization: `JWT ${localStorage.getItem('token')}`
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(json => {
-                            json.forEach(story => {
-                                story.selected = false;
-                                this.setState({
-                                    stories: [...this.state.stories, story]
-                                })
+                        json.forEach(story => {
+                            story.selected = false;
+                            this.setState({
+                                stories: [...this.state.stories, story]
                             })
                         })
                     })
-                } else {
-                    this.socket.send(
-                        JSON.stringify({
-                            'create_session': 'create_session',
-                            'entered_text': this.state.newSession.title,
-                            'session_type': this.state.newSession.session_type,
-                            'session_id': this.state.newSession.id,
-                            'owner_username': this.state.newSession.owner_username
-                        })
-                    )
-                    this.setState({
-                        currentSession: this.state.newSession,
-                        joinLobby: true
-                    })
-                }
+                })
             }
         })
     }
@@ -217,10 +282,12 @@ export default class Home extends Component {
 
         this.socket.send(
             JSON.stringify({
-                'create_session': 'create_session',
+                'create_session': 'create_session_poker',
                 'entered_text': this.state.newSession.title,
                 'session_type': this.state.newSession.session_type,
                 'session_id': this.state.newSession.id,
+                'card_type': this.state.newSession.card_type,
+                'velocity': this.state.newSession.velocity,
                 'owner_username': this.state.newSession.owner_username
             })
         )
@@ -272,6 +339,7 @@ export default class Home extends Component {
                                     }>Create New Session</button> :
                                     <CreateSession
                                         createSession={this.createSession}
+                                        createSessionPoker={this.createSessionPoker}
                                     />
                                 }
                                 <div>
@@ -324,8 +392,10 @@ function SessionList(props) {
 
 function CreateSession(props) {
     const createSession = props.createSession;
+    const createSessionPoker = props.createSessionPoker;
     return (
         <CreateSessionText
+            createSessionPoker = {createSessionPoker}
             createSession = {createSession}
         />
     )

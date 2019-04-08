@@ -416,7 +416,8 @@ export default class Poker extends Component {
                         />
                     </div>
                     <div className="column">
-                        <h2>Team Velocity: </h2>
+                        <h2>Team Velocity: {this.props.session.velocity}</h2>
+                        <h3>Card Type: {this.props.session.card_type}</h3>
                         <h3>Number of players: {this.state.members.length}</h3>
                         <MemberList memberList={this.state.members} />
                         <div>
