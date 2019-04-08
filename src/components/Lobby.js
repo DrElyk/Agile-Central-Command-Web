@@ -116,6 +116,7 @@ export default class Lobby extends Component {
             } else if (dataFromSocket.hasOwnProperty("cancel_game")) {
                 alert("Owner of this session has cancelled the game.")
                 this.socket.close()
+                this.props.deleteSession(this.props.session.id)
                 /* 
                     Redirect all users back to dashboard 
                  */

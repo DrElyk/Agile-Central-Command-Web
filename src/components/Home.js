@@ -248,6 +248,7 @@ export default class Home extends Component {
                         session={this.state.currentSession}
                         username={this.props.username}
                         email={this.props.email}
+                        deleteSession={this.deleteSession}
                     />
                     :
                     <div>
